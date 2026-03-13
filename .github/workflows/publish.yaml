@@ -28,5 +28,7 @@ jobs:
           gradle publish
           cd maven
           git add .
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git commit -m "Release ${{ github.ref_name }}"
           git push
