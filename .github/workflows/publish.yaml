@@ -22,15 +22,10 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Clone maven branch
-        run: |
-          git clone --branch maven https://github.com/${{ github.repository }} maven
-
-      - name: Build gradle plugin
-        run: gradle publish
-
       - name: Deploy maven branch
         run: |
+          git clone --branch maven https://github.com/${{ github.repository }} maven
+          gradle publish
           cd maven
           git add .
           git commit -m "Release ${{ github.ref_name }}"
