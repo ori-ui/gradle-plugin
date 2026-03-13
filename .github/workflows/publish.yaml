@@ -8,19 +8,28 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v5
+
       - name: Set up java
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 17
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
-      - name: Publish package
+
+      - name: Clone maven branch
+        run: |
+          git clone --branch maven https://github.com/${{ github.repository }} maven
+
+      - name: Build gradle plugin
         run: gradle publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy maven branch
+        run: |
+          cd maven
+          git add .
+          git commit -m "Release ${{ github.ref_name }}"
+          git push

@@ -43,12 +43,8 @@ afterEvaluate {
 
         repositories {
             maven {
-                name = "ActivityGitHubPackages"
-                url = uri("https://maven.pkg.github.com/ori-ui/gradle-plugin")
-                credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
-                }
+                name = "MavenLocal"
+                url = uri("file://${project.rootDir}/maven")
             }
         }
     }
