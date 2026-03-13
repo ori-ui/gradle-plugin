@@ -37,12 +37,13 @@ afterEvaluate {
         publications {
             create<MavenPublication>("release") {
                 from(components["release"])
+                artifactId = "activity"
             }
         }
 
         repositories {
             maven {
-                name = "GitHubPackagesActivity"
+                name = "ActivityGitHubPackages"
                 url = uri("https://maven.pkg.github.com/ori-ui/gradle-plugin")
                 credentials {
                     username = System.getenv("GITHUB_ACTOR")
