@@ -22,13 +22,6 @@ dependencies {
 }
 
 publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            artifactId = "plugin"
-        }
-    }
-
     repositories {
         maven {
             name = "GitHubPackagesPlugin"
