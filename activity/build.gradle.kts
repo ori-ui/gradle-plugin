@@ -42,8 +42,8 @@ afterEvaluate {
 
         repositories {
             maven {
-                name = "ActivityGitHubPackages"
-                url = uri("https://maven.pkg.github.com/ori-ui/ori")
+                name = "GitHubPackagesActivity"
+                url = uri("https://maven.pkg.github.com/ori-ui/gradle-plugin")
                 credentials {
                     username = System.getenv("GITHUB_ACTOR")
                     password = System.getenv("GITHUB_TOKEN")
