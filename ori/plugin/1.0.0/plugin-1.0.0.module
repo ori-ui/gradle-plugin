@@ -1,0 +1,69 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "ori",
+    "module": "plugin",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.3.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "plugin-1.0.0.jar",
+          "url": "plugin-1.0.0.jar",
+          "size": 8754,
+          "sha512": "f02c239e50aeb908339d3e90944759b7a3549f40fc68702cd5bdef6015408409768d7a3ece04f96aeee82d30fd37e0f08267e03c1bf357cdd5a8202765e8d707",
+          "sha256": "e7e9ee092e24edd3e6041fd121cdfe8666b86ab19589a715dfa98eed14f7dedc",
+          "sha1": "96aebe1ea93d777cf25ae98943b2b0f522e805bd",
+          "md5": "733386c817b6272dc682d9773cc0a6d4"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.fasterxml.jackson.core",
+          "module": "jackson-databind",
+          "version": {
+            "requires": "2.15.2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "plugin-1.0.0.jar",
+          "url": "plugin-1.0.0.jar",
+          "size": 8754,
+          "sha512": "f02c239e50aeb908339d3e90944759b7a3549f40fc68702cd5bdef6015408409768d7a3ece04f96aeee82d30fd37e0f08267e03c1bf357cdd5a8202765e8d707",
+          "sha256": "e7e9ee092e24edd3e6041fd121cdfe8666b86ab19589a715dfa98eed14f7dedc",
+          "sha1": "96aebe1ea93d777cf25ae98943b2b0f522e805bd",
+          "md5": "733386c817b6272dc682d9773cc0a6d4"
+        }
+      ]
+    }
+  ]
+}
