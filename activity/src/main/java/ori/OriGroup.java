@@ -165,6 +165,7 @@ public class OriGroup extends ViewGroup {
 
         /* draw clip */
 
+
         if (!overflowVisible) {
             clipPath.reset();
             clipPath.addRoundRect(
@@ -177,10 +178,15 @@ public class OriGroup extends ViewGroup {
                             bl, bl
                     }, Path.Direction.CW);
 
+            canvas.save();
             canvas.clipPath(clipPath);
         }
 
-        super.dispatchDraw(canvas);
+        super.onDraw(canvas);
+
+        if (!overflowVisible) {
+            canvas.restore();
+        }
     }
 
     public static class LayoutParams extends ViewGroup.LayoutParams {
