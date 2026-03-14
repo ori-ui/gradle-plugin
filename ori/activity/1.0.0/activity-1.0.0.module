@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.3.1"
+      "version": "9.4.0"
     }
   },
   "variants": [
@@ -35,11 +35,11 @@
         {
           "name": "activity-1.0.0.aar",
           "url": "activity-1.0.0.aar",
-          "size": 21233,
-          "sha512": "9078fb01cf520acea04652999990ad04f80b5782b2a18217486dd4a46626fa4fd06aefa7db32d5733b6287933fca25f33fdd84fd34f41dae5758f914031978c8",
-          "sha256": "693ada2b61d553efa4d10db37da8c0e16d9c06b52f8b96d1fbebae698b141b83",
-          "sha1": "9233004d3903aefa0782f5522b6ffb2c83fa8614",
-          "md5": "82e2d6d821bcd76a710d62436aa786e2"
+          "size": 21266,
+          "sha512": "54fa69322b4fb26add9a0114f2d3605d2cb360eade55d7822ab278c379a2ed1a36510631be945f9d500fee1bef5dd519e7b07afc0fe71a535bb0551d79b13577",
+          "sha256": "f976a0edd904e4e1655c012d0fa8eb4d6ca5ad17a2d7526eabe7c4c2b5a229b1",
+          "sha1": "9d2a47547d37b9601172668a246408f10a3c8049",
+          "md5": "8f4c5961ba82b856578555fca4b30abe"
         }
       ]
     },
@@ -78,11 +78,11 @@
         {
           "name": "activity-1.0.0.aar",
           "url": "activity-1.0.0.aar",
-          "size": 21233,
-          "sha512": "9078fb01cf520acea04652999990ad04f80b5782b2a18217486dd4a46626fa4fd06aefa7db32d5733b6287933fca25f33fdd84fd34f41dae5758f914031978c8",
-          "sha256": "693ada2b61d553efa4d10db37da8c0e16d9c06b52f8b96d1fbebae698b141b83",
-          "sha1": "9233004d3903aefa0782f5522b6ffb2c83fa8614",
-          "md5": "82e2d6d821bcd76a710d62436aa786e2"
+          "size": 21266,
+          "sha512": "54fa69322b4fb26add9a0114f2d3605d2cb360eade55d7822ab278c379a2ed1a36510631be945f9d500fee1bef5dd519e7b07afc0fe71a535bb0551d79b13577",
+          "sha256": "f976a0edd904e4e1655c012d0fa8eb4d6ca5ad17a2d7526eabe7c4c2b5a229b1",
+          "sha1": "9d2a47547d37b9601172668a246408f10a3c8049",
+          "md5": "8f4c5961ba82b856578555fca4b30abe"
         }
       ]
     },
@@ -98,11 +98,11 @@
         {
           "name": "activity-1.0.0-sources.jar",
           "url": "activity-1.0.0-sources.jar",
-          "size": 8433,
-          "sha512": "ac5c0eb766ea35df161a69d2ca609c2538fd28197f2c7543c17469ffa3d3502b74b0176a38b5edc2c907825ccf6a29eea6d8b110ee9a828b5e7d2d5403498941",
-          "sha256": "84f9e9381cbf513b8acc09c7eebaa5800e4bbd1d433b4020ec09ba1e96688599",
-          "sha1": "bfda6429a76abb4fabc944c52b23704832ea8483",
-          "md5": "4bd31733a0e19ad2b1f91b6a6a3e216c"
+          "size": 8452,
+          "sha512": "b2007b90d59e9c6fe5f7098b869452d3233ad6b4df80b54cb21e1060d8d1686c1070822d04755bef28a93bbb867777738afabfa607a578ab0413f7318f78c52d",
+          "sha256": "b90cc9d06a95e50279103f205bb005628e0ce6d324b59ce544b7b17fef7f472a",
+          "sha1": "02ee2f4aaec823d60fbb2320c2a16fe520d50fe2",
+          "md5": "296e30eec715da99b511158d6f79cbe9"
         }
       ]
     },
