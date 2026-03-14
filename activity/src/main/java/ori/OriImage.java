@@ -14,7 +14,6 @@ import com.caverock.androidsvg.SVG;
 public class OriImage extends View {
     SVG svg;
     Bitmap bitmap;
-    Bitmap cache;
 
     Paint tintPaint;
 
@@ -26,27 +25,24 @@ public class OriImage extends View {
     public void setSvg(SVG svg) {
         this.svg = svg;
         this.bitmap = null;
-        this.cache = null;
         invalidate();
     }
 
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
         this.svg = null;
-        this.cache = null;
         invalidate();
     }
 
-    public void setTint(int color) {
-        if (color == 0) {
-            this.tintPaint = null;
-        } else {
+    public void setTint(int color, boolean isSet) {
+        if (isSet) {
             this.tintPaint = new Paint();
             this.tintPaint.setColorFilter(
                     new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+        } else {
+            this.tintPaint = null;
         }
 
-        this.cache = null;
         invalidate();
     }
 
@@ -56,33 +52,25 @@ public class OriImage extends View {
             return;
         }
 
-        if (cache == null
-                || cache.getWidth() != getWidth()
-                || cache.getHeight() != getHeight()) {
-            cache = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-            Canvas cacheCanvas = new Canvas(cache);
+        if (svg != null) {
+            if (bitmap == null
+                    || bitmap.getWidth() != getWidth()
+                    || bitmap.getHeight() != getHeight()) {
+                bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+                Canvas cacheCanvas = new Canvas(bitmap);
 
-            int save = -1;
-
-            if (tintPaint != null) {
-                save = cacheCanvas.saveLayer(null, tintPaint);
-            }
-
-            if (svg != null) {
-                svg.setDocumentWidth(getWidth());
-                svg.setDocumentHeight(getHeight());
-                svg.renderToCanvas(cacheCanvas);
-            }
-
-            if (bitmap != null) {
-                cacheCanvas.drawBitmap(bitmap, 0, 0, null);
-            }
-
-            if (tintPaint != null) {
-                cacheCanvas.restoreToCount(save);
+                if (svg != null) {
+                    svg.setDocumentWidth(getWidth());
+                    svg.setDocumentHeight(getHeight());
+                    svg.renderToCanvas(cacheCanvas);
+                }
             }
         }
 
-        canvas.drawBitmap(cache, 0, 0, null);
+        if (tintPaint != null) {
+            canvas.drawBitmap(bitmap, 0, 0, tintPaint);
+        } else {
+            canvas.drawBitmap(bitmap, 0, 0, null);
+        }
     }
 }

@@ -657,11 +657,13 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void imageSetTint(long id, float r, float g, float b, float a) {
+    public void imageSetTint(long id,
+            boolean isSet,
+            float r, float g, float b, float a) {
         queueUiTask(() -> {
             OriImage view = (OriImage) views.get(id);
             int color = rgba(r, g, b, a);
-            view.setTint(color);
+            view.setTint(color, isSet);
         });
     }
 
@@ -703,6 +705,8 @@ public class OriActivity extends AppCompatActivity {
     }
 
     public static int rgba(float r, float g, float b, float a) {
+        a = (float) Math.pow(a, 0.45f);
+
         return Color.argb(
                 (int) Math.round(a * 255.0f),
                 (int) Math.round(r * a * 255.0f),
