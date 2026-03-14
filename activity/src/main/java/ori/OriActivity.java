@@ -75,6 +75,10 @@ public class OriActivity extends AppCompatActivity {
     }
 
     public void removeView(long id) {
+        textLayout.remove(id);
+        textInputLayout.remove(id);
+        imageLayout.remove(id);
+
         queueUiTask(() -> {
             View view = views.remove(id);
             ViewGroup parent = (ViewGroup) view.getParent();
@@ -472,7 +476,7 @@ public class OriActivity extends AppCompatActivity {
             width = Math.max(width, staticLayout.getLineWidth(i));
         }
 
-        return width;
+        return width / metrics.density;
     }
 
     public float textMeasureHeight(long id, float maxWidth) {
