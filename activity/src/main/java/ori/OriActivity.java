@@ -625,20 +625,7 @@ public class OriActivity extends AppCompatActivity {
         imageLayout.put(id, new ImageLayout());
     }
 
-    public void imageLoad(long id, byte[] data) {
-        if (data.length >= 5
-                && data[0] == 0x3c
-                && data[1] == 0x3f
-                && data[2] == 0x78
-                && data[3] == 0x6d
-                && data[4] == 0x6c) {
-            loadSvgImage(id, data);
-        } else {
-            loadBitmapImage(id, data);
-        }
-    }
-
-    void loadSvgImage(long id, byte[] data) {
+    public void imageLoadSvg(long id, byte[] data) {
         ImageLayout layout = imageLayout.get(id);
 
         try {
@@ -657,7 +644,7 @@ public class OriActivity extends AppCompatActivity {
         }
     }
 
-    void loadBitmapImage(long id, byte[] data) {
+    public void imageLoadBitmap(long id, byte[] data) {
         ImageLayout layout = imageLayout.get(id);
 
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
