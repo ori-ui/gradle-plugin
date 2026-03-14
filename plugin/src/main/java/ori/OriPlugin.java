@@ -150,8 +150,9 @@ public class OriPlugin implements Plugin<Project> {
             task.commandLine(
                     "cargo",
                     "build",
-                    "--profile", profile,
+                    "--lib",
                     "--target", triple,
+                    "--profile", profile,
                     "--color", "always");
 
             String host;
@@ -170,14 +171,19 @@ public class OriPlugin implements Plugin<Project> {
 
             task.environment("ANDROID_SDK_ROOT", sdkComponents.getSdkDirectory());
             task.environment("ANDROID_NDK", sdkComponents.getNdkDirectory());
+
             task.environment("CARGO_TARGET_" + envTriple + "_LINKER",
                     new File(llvm, clang.toString()));
             task.environment("CARGO_TARGET_" + envTriple + "_AR",
                     new File(llvm, "llvm-ar"));
+
             task.environment("CC_" + envTriple,
                     new File(llvm, clang.toString()));
-            task.environment("CC_" + envTriple,
+            task.environment("CXX_" + envTriple,
                     new File(llvm, clang.toString() + "++"));
+
+            task.environment("CC", new File(llvm, clang.toString()));
+            task.environment("CXX", new File(llvm, clang.toString() + "++"));
         });
     }
 
