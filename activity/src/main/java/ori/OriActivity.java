@@ -46,7 +46,7 @@ import java.io.ByteArrayInputStream;
 
 public class OriActivity extends AppCompatActivity {
     DisplayMetrics metrics;
-    FrameLayout root;
+    OriGroup root;
     boolean isAnimating = false;
     long lastFrameTime = 0;
 
@@ -62,7 +62,7 @@ public class OriActivity extends AppCompatActivity {
         metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        root = new FrameLayout(this);
+        root = new OriGroup(this);
         setContentView(root);
 
         main();
@@ -104,10 +104,10 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void windowSetContentSize(float width, float height) {
+    public void windowSetContentLayout(float x, float y, float width, float height) {
         queueUiTask(() -> {
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                    px(width), px(height));
+            OriGroup.LayoutParams lp = new OriGroup.LayoutParams(
+                    px(width), px(height), px(x), px(y));
 
             root.getChildAt(0).setLayoutParams(lp);
         });
@@ -408,11 +408,6 @@ public class OriActivity extends AppCompatActivity {
     public void textSetText(long id, String text, int wrap) {
         TextLayout layout = textLayout.get(id);
         layout.text = new SpannableString(text);
-
-        queueUiTask(() -> {
-            TextView view = (TextView) views.get(id);
-            view.requestLayout();
-        });
     }
 
     public void textSetSpan(long id,
