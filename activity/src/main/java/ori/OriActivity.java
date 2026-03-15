@@ -714,13 +714,11 @@ public class OriActivity extends AppCompatActivity {
     }
 
     public static int rgba(float r, float g, float b, float a) {
-        a = (float) Math.pow(a, 0.45f);
-
         return Color.argb(
                 (int) Math.round(a * 255.0f),
-                (int) Math.round(r * a * 255.0f),
-                (int) Math.round(g * a * 255.0f),
-                (int) Math.round(b * a * 255.0f));
+                (int) Math.round(r * 255.0f),
+                (int) Math.round(g * 255.0f),
+                (int) Math.round(b * 255.0f));
     }
 
     public static Typeface createTypeface(String family, int weight, boolean italic) {
