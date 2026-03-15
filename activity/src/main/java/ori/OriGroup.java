@@ -3,10 +3,12 @@ package ori;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Paint;
 import android.graphics.Bitmap;
+import android.graphics.Outline;
 import android.renderscript.Allocation;
 import android.renderscript.Element;
 import android.renderscript.RenderScript;
@@ -173,6 +175,8 @@ public class OriGroup extends ViewGroup {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
         if (drawShadow) {
             canvas.drawBitmap(
                     shadowBitmap,
@@ -183,17 +187,15 @@ public class OriGroup extends ViewGroup {
 
         canvas.drawPath(backgroundPath, backgroundPaint);
         canvas.drawPath(borderPath, borderPaint);
+    }
 
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
         if (!overflowVisible) {
-            canvas.save();
             canvas.clipPath(clipPath);
         }
 
-        super.onDraw(canvas);
-
-        if (!overflowVisible) {
-            canvas.restore();
-        }
+        super.dispatchDraw(canvas);
     }
 
     private void computePaths(int w, int h) {
