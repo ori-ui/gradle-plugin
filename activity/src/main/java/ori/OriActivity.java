@@ -541,8 +541,8 @@ public class OriActivity extends AppCompatActivity {
             float a) {
         Typeface typeface = createTypeface(family, weight, italic);
         TextInputLayout layout = textInputLayout.get(id);
-        layout.typeface = typeface;
-        layout.textSize = textSize;
+        layout.paint.setTypeface(typeface);
+        layout.paint.setTextSize(px(textSize));
 
         queueUiTask(() -> {
             OriEditText view = (OriEditText) views.get(id);
@@ -575,14 +575,13 @@ public class OriActivity extends AppCompatActivity {
             float a) {
         Typeface typeface = createTypeface(family, weight, italic);
         TextInputLayout layout = textInputLayout.get(id);
-        layout.placeholderTypeface = typeface;
-        layout.placeholderTextSize = textSize;
+        layout.placeholderPaint.setTypeface(typeface);
+        layout.placeholderPaint.setTextSize(px(textSize));
 
         queueUiTask(() -> {
             OriEditText view = (OriEditText) views.get(id);
 
             int color = rgba(r, g, b, a);
-
             view.setPlaceholderFont(typeface, px(textSize), color);
         });
     }
@@ -590,32 +589,18 @@ public class OriActivity extends AppCompatActivity {
     public float textInputMeasureHeight(long id) {
         TextInputLayout layout = textInputLayout.get(id);
 
-        TextPaint paint = new TextPaint();
-        paint.setTextSize(px(layout.textSize));
-        paint.setTypeface(layout.typeface);
-
-        TextPaint placeholderPaint = new TextPaint();
-        placeholderPaint.setTextSize(px(layout.placeholderTextSize));
-        placeholderPaint.setTypeface(layout.placeholderTypeface);
-
-        var fm = paint.getFontMetrics();
-        var pfm = placeholderPaint.getFontMetrics();
+        var fm = layout.paint.getFontMetrics();
+        var pfm = layout.placeholderPaint.getFontMetrics();
 
         float height = fm.descent - fm.ascent;
         float placeholderHeight = pfm.descent - pfm.ascent;
 
-        EditText probe = new EditText(this);
-        int padding = probe.getPaddingTop() + probe.getPaddingBottom();
-
-        return (Math.max(height, placeholderHeight) + padding) / metrics.density;
+        return Math.max(height, placeholderHeight) / metrics.density + 4.0f;
     }
 
     static class TextInputLayout {
-        public Typeface typeface;
-        public float textSize;
-
-        public Typeface placeholderTypeface;
-        public float placeholderTextSize;
+        public TextPaint paint = new TextPaint();
+        public TextPaint placeholderPaint = new TextPaint();
     }
 
     /* ---------- IMAGE ---------- */

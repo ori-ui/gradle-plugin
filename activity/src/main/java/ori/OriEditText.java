@@ -34,6 +34,7 @@ public class OriEditText extends AppCompatEditText {
         this.id = id;
 
         setBackgroundColor(Color.TRANSPARENT);
+        setPadding(0, 0, 0, 0);
 
         addTextChangedListener(new TextWatcher() {
             @Override
