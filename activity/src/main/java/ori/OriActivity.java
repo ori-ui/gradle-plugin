@@ -256,6 +256,11 @@ public class OriActivity extends AppCompatActivity {
             float r, float g, float b, float a,
             float dx, float dy,
             float blur, float spread) {
+        queueUiTask(() -> {
+            OriGroup view = (OriGroup) views.get(id);
+            int color = rgba(r, g, b, a);
+            view.setShadow(color, dx, dy, blur, spread);
+        });
     }
 
     /* ---------- PRESSABLE ---------- */

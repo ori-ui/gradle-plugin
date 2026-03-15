@@ -6,64 +6,107 @@ import android.view.ViewGroup;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Paint;
+import android.graphics.Bitmap;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
 
 public class OriGroup extends ViewGroup {
-    private int backgroundColor = 0;
-    private int borderColor = 0;
+    private float radiusTL = 0.0f;
+    private float radiusTR = 0.0f;
+    private float radiusBR = 0.0f;
+    private float radiusBL = 0.0f;
 
-    private float radiusTL = 0f;
-    private float radiusTR = 0f;
-    private float radiusBR = 0f;
-    private float radiusBL = 0f;
+    private float borderT = 0.0f;
+    private float borderR = 0.0f;
+    private float borderB = 0.0f;
+    private float borderL = 0.0f;
 
-    private float borderT = 0f;
-    private float borderR = 0f;
-    private float borderB = 0f;
-    private float borderL = 0f;
+    private boolean drawShadow = false;
+    private float shadowOffsetX = 0.0f;
+    private float shadowOffsetY = 0.0f;
+    private float shadowRadius = 0.0f;
+    private float shadowSpread = 0.0f;
 
     private Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private Path backgroundPath = new Path();
     private Path borderPath = new Path();
+    private Path shadowPath = new Path();
     private Path clipPath = new Path();
+
+    private Bitmap shadowBitmap;
 
     private boolean overflowVisible = false;
 
     public OriGroup(Context context) {
         super(context);
         setWillNotDraw(false);
+
+        backgroundPaint.setStyle(Paint.Style.FILL);
+        borderPaint.setStyle(Paint.Style.FILL);
+
+        backgroundPaint.setColor(0);
+        borderPaint.setColor(0);
     }
 
     public void setBackgroundColor(int color) {
-        this.backgroundColor = color;
+        backgroundPaint.setColor(color);
         invalidate();
     }
 
     public void setCornerRadii(float tl, float tr, float br, float bl) {
-        this.radiusTL = tl;
-        this.radiusTR = tr;
-        this.radiusBR = br;
-        this.radiusBL = bl;
+        radiusTL = tl;
+        radiusTR = tr;
+        radiusBR = br;
+        radiusBL = bl;
+
+        computePaths(getWidth(), getHeight());
+
         invalidate();
     }
 
     public void setBorderWidth(float t, float r, float b, float l) {
-        this.borderT = t;
-        this.borderR = r;
-        this.borderB = b;
-        this.borderL = l;
+        borderT = t;
+        borderR = r;
+        borderB = b;
+        borderL = l;
+
+        computePaths(getWidth(), getHeight());
+
         invalidate();
     }
 
     public void setBorderColor(int color) {
-        this.borderColor = color;
+        borderPaint.setColor(color);
         invalidate();
     }
 
     public void setOverflow(boolean visible) {
-        this.overflowVisible = visible;
+        overflowVisible = visible;
         setClipChildren(!visible);
+        invalidate();
+    }
+
+    public void setShadow(
+            int color,
+            float offsetX,
+            float offsetY,
+            float radius,
+            float spread) {
+        drawShadow = color != 0;
+        if (!drawShadow) return;
+
+        shadowPaint.setColor(color);
+        shadowOffsetX = offsetX;
+        shadowOffsetY = offsetY;
+        shadowRadius = radius;
+        shadowSpread = spread;
+
+        generateShadow(getWidth(), getHeight());
         invalidate();
     }
 
@@ -107,16 +150,59 @@ public class OriGroup extends ViewGroup {
         return new LayoutParams(p.width, p.height, 0, 0);
     }
 
+    public static class LayoutParams extends ViewGroup.LayoutParams {
+        public int x = 0;
+        public int y = 0;
+
+        public LayoutParams(int width, int height, int x, int y) {
+            super(width, height);
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldW, int oldH) {
+        super.onSizeChanged(w, h, oldW, oldH);
+        computePaths(w, h);
+
+        if (drawShadow) {
+            generateShadow(w, h);
+        }
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
-        int w = getWidth();
-        int h = getHeight();
+        if (drawShadow) {
+            canvas.drawBitmap(
+                    shadowBitmap,
+                    shadowOffsetX - shadowRadius - shadowSpread,
+                    shadowOffsetY - shadowRadius - shadowSpread,
+                    null);
+        }
 
-        /* draw background */
+        canvas.drawPath(backgroundPath, backgroundPaint);
+        canvas.drawPath(borderPath, borderPaint);
 
-        backgroundPaint.setColor(backgroundColor);
-        backgroundPaint.setStyle(Paint.Style.FILL);
+        if (!overflowVisible) {
+            canvas.save();
+            canvas.clipPath(clipPath);
+        }
 
+        super.onDraw(canvas);
+
+        if (!overflowVisible) {
+            canvas.restore();
+        }
+    }
+
+    private void computePaths(int w, int h) {
+        computeBackgroundPath(w, h);
+        computeBorderPath(w, h);
+        computeClipPath(w, h);
+    }
+
+    private void computeBackgroundPath(int w, int h) {
         backgroundPath.reset();
         backgroundPath.addRoundRect(
                 0, 0,
@@ -127,14 +213,9 @@ public class OriGroup extends ViewGroup {
                         radiusBR, radiusBR,
                         radiusBL, radiusBL
                 }, Path.Direction.CW);
+    }
 
-        canvas.drawPath(backgroundPath, backgroundPaint);
-
-        /* draw border */
-
-        borderPaint.setColor(borderColor);
-        borderPaint.setStyle(Paint.Style.FILL);
-
+    private void computeBorderPath(int w, int h) {
         borderPath.reset();
         borderPath.addRoundRect(
                 0, 0,
@@ -160,43 +241,79 @@ public class OriGroup extends ViewGroup {
                         br, br,
                         bl, bl
                 }, Path.Direction.CCW);
-
-        canvas.drawPath(borderPath, borderPaint);
-
-        /* draw clip */
-
-
-        if (!overflowVisible) {
-            clipPath.reset();
-            clipPath.addRoundRect(
-                    borderL, borderT,
-                    w - borderR, h - borderB,
-                    new float[] {
-                            tl, tl,
-                            tr, tr,
-                            br, br,
-                            bl, bl
-                    }, Path.Direction.CW);
-
-            canvas.save();
-            canvas.clipPath(clipPath);
-        }
-
-        super.onDraw(canvas);
-
-        if (!overflowVisible) {
-            canvas.restore();
-        }
     }
 
-    public static class LayoutParams extends ViewGroup.LayoutParams {
-        public int x = 0;
-        public int y = 0;
+    private void computeClipPath(int w, int h) {
+        float tl = radiusTL - Math.max(borderT, borderL);
+        float tr = radiusTR - Math.max(borderT, borderR);
+        float br = radiusBR - Math.max(borderB, borderR);
+        float bl = radiusBL - Math.max(borderB, borderL);
 
-        public LayoutParams(int width, int height, int x, int y) {
-            super(width, height);
-            this.x = x;
-            this.y = y;
-        }
+        clipPath.reset();
+        clipPath.addRoundRect(
+                borderL, borderT,
+                w - borderR, h - borderB,
+                new float[] {
+                        tl, tl,
+                        tr, tr,
+                        br, br,
+                        bl, bl
+                }, Path.Direction.CW);
+    }
+
+    private void generateShadow(int w, int h) {
+        if (w <= 0 || h <= 0)
+            return;
+
+        int padding = (int) (shadowRadius + shadowSpread) * 2;
+
+        shadowBitmap = Bitmap.createBitmap(
+                w + padding, h + padding,
+                Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(shadowBitmap);
+
+        shadowPath.reset();
+        shadowPath.addRoundRect(
+                -shadowSpread, -shadowSpread,
+                w + shadowSpread, h + shadowSpread,
+                new float[] {
+                        radiusTL, radiusTL,
+                        radiusTR, radiusTR,
+                        radiusBR, radiusBR,
+                        radiusBL, radiusBL
+                }, Path.Direction.CW);
+
+        canvas.translate(shadowRadius + shadowSpread, shadowRadius + shadowSpread);
+        canvas.drawPath(shadowPath, shadowPaint);
+
+        shadowBitmap = blurRenderScript(shadowBitmap);
+    }
+
+    private Bitmap blurRenderScript(Bitmap image) {
+        if (shadowRadius <= 0.0f) return image;
+
+        float radius = (float) Math.min(shadowRadius, 25.0f);
+
+        Bitmap output = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
+
+        RenderScript rs = RenderScript.create(getContext());
+
+        Allocation input = Allocation.createFromBitmap(rs, image);
+        Allocation outputAlloc = Allocation.createFromBitmap(rs, output);
+
+        ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+        blurScript.setInput(input);
+        blurScript.setRadius(radius);
+
+        blurScript.forEach(outputAlloc);
+        outputAlloc.copyTo(output);
+
+        input.destroy();
+        outputAlloc.destroy();
+        blurScript.destroy();
+        rs.destroy();
+
+        return output;
     }
 }
