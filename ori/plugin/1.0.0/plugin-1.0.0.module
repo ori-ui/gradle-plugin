@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.3.1"
+      "version": "9.4.0"
     }
   },
   "variants": [
@@ -27,11 +27,11 @@
         {
           "name": "plugin-1.0.0.jar",
           "url": "plugin-1.0.0.jar",
-          "size": 8816,
-          "sha512": "6fdbb68d6821cc8b2df223f84ea43faa3f80695b289b0dd607879662563d499373bc0b65602659fa62dacdf7c979e9511dc572b99746d8b0460b1fa4c65f62ec",
-          "sha256": "6bbb6bfcc18620a010eae029cd810e8eadf0f896042e74b1885ec154af58b6d5",
-          "sha1": "7b874349c41141489867faccab0ced65cd6c15b5",
-          "md5": "0ef02528d32bc5f661d3b5a08cca6e46"
+          "size": 9919,
+          "sha512": "7ed5304c5d53a1237e95d9d119ad96071a084cadf9ea2440f152d4a50d2aa02814a86fd06d16469726e1c55bd8fb01e498a01aba7c855155963b4677754a1abb",
+          "sha256": "6927a0e14c462c03be1f979cb3725108667cf30581041e0ce8782871b5884028",
+          "sha1": "80e7c51a4bca6f7ce23ee804492c1f013edfa2c8",
+          "md5": "b832ed98d7f4fe4aef0e261a9f6dfec8"
         }
       ]
     },
@@ -57,11 +57,11 @@
         {
           "name": "plugin-1.0.0.jar",
           "url": "plugin-1.0.0.jar",
-          "size": 8816,
-          "sha512": "6fdbb68d6821cc8b2df223f84ea43faa3f80695b289b0dd607879662563d499373bc0b65602659fa62dacdf7c979e9511dc572b99746d8b0460b1fa4c65f62ec",
-          "sha256": "6bbb6bfcc18620a010eae029cd810e8eadf0f896042e74b1885ec154af58b6d5",
-          "sha1": "7b874349c41141489867faccab0ced65cd6c15b5",
-          "md5": "0ef02528d32bc5f661d3b5a08cca6e46"
+          "size": 9919,
+          "sha512": "7ed5304c5d53a1237e95d9d119ad96071a084cadf9ea2440f152d4a50d2aa02814a86fd06d16469726e1c55bd8fb01e498a01aba7c855155963b4677754a1abb",
+          "sha256": "6927a0e14c462c03be1f979cb3725108667cf30581041e0ce8782871b5884028",
+          "sha1": "80e7c51a4bca6f7ce23ee804492c1f013edfa2c8",
+          "md5": "b832ed98d7f4fe4aef0e261a9f6dfec8"
         }
       ]
     }
