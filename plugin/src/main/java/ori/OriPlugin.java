@@ -9,6 +9,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.os.OperatingSystem;
 
 import com.android.build.api.dsl.ApplicationExtension;
+import com.android.build.api.dsl.SigningConfig;
 import com.android.build.api.dsl.SdkComponents;
 import com.android.build.api.variant.AndroidComponentsExtension;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,6 +19,7 @@ import java.io.*;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class OriPlugin implements Plugin<Project> {
     static Map<String, String> targets = Map.of(
@@ -65,12 +67,43 @@ public class OriPlugin implements Plugin<Project> {
         android.setNdkVersion("27.3.13750724");
 
         android.getDefaultConfig().setApplicationId(meta.applicationId);
+        android.getDefaultConfig().setVersionName(meta.version);
+        android.getDefaultConfig().setVersionCode(meta.versionCode);
         android.getDefaultConfig().setMinSdk(21);
         android.getDefaultConfig().setTargetSdk(35);
         android.getDefaultConfig().getManifestPlaceholders().put("appLabel", meta.label);
 
         android.getCompileOptions().setSourceCompatibility(JavaVersion.VERSION_17);
         android.getCompileOptions().setTargetCompatibility(JavaVersion.VERSION_17);
+
+        String storeFile = System.getenv("ANDROID_KEYSTORE");
+        String storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD");
+        String keyAlias = System.getenv("ANDROID_KEY_ALIAS");
+        String keyPassword = System.getenv("ANDROID_KEY_PASSWORD");
+
+        File propertiesFile = project.getRootProject().file(meta.keyProperties);
+
+        if (propertiesFile.exists()) {
+            Properties properties = new Properties();
+
+            try (FileInputStream fs = new FileInputStream(propertiesFile)) {
+                properties.load(fs);
+
+                storeFile = properties.getProperty("storeFile");
+                storePassword = properties.getProperty("storePassword");
+                keyAlias = properties.getProperty("keyAlias");
+                keyPassword = properties.getProperty("keyPassword");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        SigningConfig signing = android.getSigningConfigs().maybeCreate("release");
+
+        signing.setStoreFile(project.file(storeFile));
+        signing.setStorePassword(storePassword);
+        signing.setKeyAlias(keyAlias);
+        signing.setKeyPassword(keyPassword);
 
         String jniLibsFile = project
                 .getLayout()
@@ -195,6 +228,10 @@ class CargoMetadata {
     String label;
     String namespace;
     String applicationId;
+    String version;
+    int versionCode;
+
+    String keyProperties;
 
     public CargoMetadata(Project project) throws IOException {
         String metaString = readMetadata(project);
@@ -233,6 +270,24 @@ class CargoMetadata {
 
         namespace = meta.get("package").asText();
         applicationId = meta.get("package").asText();
+
+        if (meta.get("version") != null) {
+            version = meta.get("version").asText();
+        } else {
+            version = pkg.get("version").asText();
+        }
+
+        if (meta.get("version-code") != null) {
+            versionCode = meta.get("version-code").asInt();
+        } else {
+            versionCode = 0;
+        }
+
+        if (meta.get("key-properties") != null) {
+            keyProperties = meta.get("key-properties").asText();
+        } else {
+            keyProperties = "key.properties";
+        }
     }
 
     private static String readMetadata(Project project) throws IOException {
