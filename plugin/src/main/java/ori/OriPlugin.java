@@ -280,7 +280,7 @@ class CargoMetadata {
         if (meta.get("version-code") != null) {
             versionCode = meta.get("version-code").asInt();
         } else {
-            versionCode = 0;
+            versionCode = 1;
         }
 
         if (meta.get("key-properties") != null) {
