@@ -9,7 +9,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.os.OperatingSystem;
 
 import com.android.build.api.dsl.ApplicationExtension;
-import com.android.build.api.dsl.SigningConfig;
+import com.android.build.api.dsl.ApkSigningConfig;
 import com.android.build.api.dsl.SdkComponents;
 import com.android.build.api.variant.AndroidComponentsExtension;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,14 +17,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.util.Map;
+import java.util.Set;
 import java.util.List;
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Properties;
 
 public class OriPlugin implements Plugin<Project> {
     static Map<String, String> targets = Map.of(
             "arm64-v8a", "aarch64-linux-android",
-            "x86_64", "x86_64-linux-android");
+            "armabi-v7a", "arm7-linux-androideabi",
+            "x86_64", "x86_64-linux-android",
+            "x86", "i686-linux-android");
 
     @Override
     public void apply(Project project) {
@@ -98,12 +102,14 @@ public class OriPlugin implements Plugin<Project> {
             }
         }
 
-        SigningConfig signing = android.getSigningConfigs().maybeCreate("release");
+        ApkSigningConfig signing = android.getSigningConfigs().maybeCreate("release");
 
         signing.setStoreFile(project.file(storeFile));
         signing.setStorePassword(storePassword);
         signing.setKeyAlias(keyAlias);
         signing.setKeyPassword(keyPassword);
+
+        android.getBuildTypes().getByName("release").setSigningConfig(signing);
 
         String jniLibsFile = project
                 .getLayout()
@@ -123,6 +129,9 @@ public class OriPlugin implements Plugin<Project> {
         List<TaskProvider<Exec>> buildTasks = new ArrayList<TaskProvider<Exec>>();
 
         targets.forEach((abi, triple) -> {
+            if (!meta.targets.contains(abi))
+                return;
+
             buildTasks.add(registerBuildTask(project, meta, variant, profile, abi, triple));
         });
 
@@ -142,6 +151,9 @@ public class OriPlugin implements Plugin<Project> {
             task.into(project.getLayout().getBuildDirectory().dir("generated/jniLibs"));
 
             targets.forEach((abi, target) -> {
+                if (!meta.targets.contains(abi))
+                    return;
+
                 task.from(new File(meta.targetDirectory, "/" + target + "/" + variant.toLowerCase()),
                         spec -> {
                             spec.include("*.so");
@@ -225,13 +237,15 @@ public class OriPlugin implements Plugin<Project> {
 class CargoMetadata {
     String targetDirectory;
 
+    Set<String> targets = new HashSet();
+
     String label;
     String namespace;
     String applicationId;
     String version;
-    int versionCode;
+    int versionCode = 1;
 
-    String keyProperties;
+    String keyProperties = "key.properties";
 
     public CargoMetadata(Project project) throws IOException {
         String metaString = readMetadata(project);
@@ -262,6 +276,15 @@ class CargoMetadata {
             throw new RuntimeException("Android metadata not found in `Cargo.toml`");
         }
 
+        if (meta.get("targets") != null) {
+            for (var target : meta.get("targets")) {
+                targets.add(target.asText());
+            }
+        } else {
+            targets.add("arm64-v8a");
+            targets.add("x86_64");
+        }
+
         if (meta.get("name") != null) {
             label = meta.get("name").asText();
         } else {
@@ -279,14 +302,10 @@ class CargoMetadata {
 
         if (meta.get("version-code") != null) {
             versionCode = meta.get("version-code").asInt();
-        } else {
-            versionCode = 1;
         }
 
         if (meta.get("key-properties") != null) {
             keyProperties = meta.get("key-properties").asText();
-        } else {
-            keyProperties = "key.properties";
         }
     }
 
