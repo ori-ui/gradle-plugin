@@ -105,7 +105,10 @@ public class OriPlugin implements Plugin<Project> {
 
         ApkSigningConfig signing = android.getSigningConfigs().maybeCreate("release");
 
-        signing.setStoreFile(project.file(storeFile));
+        if (storeFile != null) {
+            signing.setStoreFile(project.file(storeFile));
+        }
+
         signing.setStorePassword(storePassword);
         signing.setKeyAlias(keyAlias);
         signing.setKeyPassword(keyPassword);
