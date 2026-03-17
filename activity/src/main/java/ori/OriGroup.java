@@ -292,30 +292,46 @@ public class OriGroup extends ViewGroup {
         shadowBitmap = blurRenderScript(shadowBitmap);
     }
 
+    @SuppressWarnings("deprecation")
     private Bitmap blurRenderScript(Bitmap image) {
         if (shadowRadius <= 0.0f) return image;
 
         float radius = (float) Math.min(shadowRadius, 25.0f);
+        float scale = shadowRadius / radius;
 
-        Bitmap output = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap input = Bitmap.createScaledBitmap(
+                image,
+                (int) (image.getWidth() / scale),
+                (int) (image.getHeight() / scale),
+                true);
+
+        Bitmap output = Bitmap.createBitmap(
+                input.getWidth(),
+                input.getHeight(),
+                Bitmap.Config.ARGB_8888);
 
         RenderScript rs = RenderScript.create(getContext());
 
-        Allocation input = Allocation.createFromBitmap(rs, image);
+        Allocation inputAlloc = Allocation.createFromBitmap(rs, input);
         Allocation outputAlloc = Allocation.createFromBitmap(rs, output);
 
         ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
-        blurScript.setInput(input);
         blurScript.setRadius(radius);
 
+        blurScript.setInput(inputAlloc);
         blurScript.forEach(outputAlloc);
+
         outputAlloc.copyTo(output);
 
-        input.destroy();
+        inputAlloc.destroy();
         outputAlloc.destroy();
         blurScript.destroy();
         rs.destroy();
 
-        return output;
+        return Bitmap.createScaledBitmap(
+                output,
+                image.getWidth(),
+                image.getHeight(),
+                true);
     }
 }
