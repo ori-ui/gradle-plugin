@@ -59,6 +59,7 @@ public class OriPlugin implements Plugin<Project> {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void configureAndroid(Project project, CargoMetadata meta) {
         project.getDependencies().add(
                 "implementation",
@@ -118,7 +119,7 @@ public class OriPlugin implements Plugin<Project> {
                 .get()
                 .toString();
 
-        android.getSourceSets().getByName("main").getJniLibs().srcDir(jniLibsFile);
+        android.getSourceSets().getByName("main").getJniLibs().srcDirs(jniLibsFile);
     }
 
     private TaskProvider<Copy> registerTasks(
@@ -237,7 +238,7 @@ public class OriPlugin implements Plugin<Project> {
 class CargoMetadata {
     String targetDirectory;
 
-    Set<String> targets = new HashSet();
+    Set<String> targets = new HashSet<>();
 
     String label;
     String namespace;

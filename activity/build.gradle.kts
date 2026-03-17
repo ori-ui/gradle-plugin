@@ -27,8 +27,13 @@ android {
     }
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.addAll(listOf("-Xlint:unchecked", "-Xlint:deprecation"))
+}
+
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.window:window:1.4.0")
     implementation("com.caverock:androidsvg:1.4")
 }
 

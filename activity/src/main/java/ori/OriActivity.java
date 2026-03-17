@@ -8,12 +8,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.Choreographer;
+import android.view.WindowInsets;
 import android.widget.ScrollView;
 import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.graphics.Paint;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -30,6 +32,11 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StrikethroughSpan;
 
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.graphics.Insets;
+import androidx.window.layout.WindowMetrics;
+import androidx.window.layout.WindowMetricsCalculator;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.caverock.androidsvg.SVG;
@@ -50,17 +57,17 @@ public class OriActivity extends AppCompatActivity {
     boolean isAnimating = false;
     long lastFrameTime = 0;
 
-    Map<Long, View> views = new HashMap();
-    Map<Long, TextLayout> textLayout = new HashMap();
-    Map<Long, TextInputLayout> textInputLayout = new HashMap();
-    Map<Long, ImageLayout> imageLayout = new HashMap();
+    Map<Long, View> views = new HashMap<>();
+    Map<Long, TextLayout> textLayout = new HashMap<>();
+    Map<Long, TextInputLayout> textInputLayout = new HashMap<>();
+    Map<Long, ImageLayout> imageLayout = new HashMap<>();
 
     @Override
     public void onCreate(Bundle savedInstantanceState) {
         super.onCreate(savedInstantanceState);
 
-        metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        metrics = getResources().getDisplayMetrics();
 
         root = new OriGroup(this);
         setContentView(root);
@@ -68,13 +75,48 @@ public class OriActivity extends AppCompatActivity {
         main();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        getWindow().getDecorView().post(this::attachInsetsListener);
+    }
+
+    void attachInsetsListener() {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+                getWindow().getDecorView(), 
+                (view, insets) -> {
+                    Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+                    Insets gestures = insets.getInsets(WindowInsets.Type.systemGestures());
+                    Insets cutout = insets.getInsets(WindowInsets.Type.displayCutout());
+
+                    float top = Math.max(bars.top, cutout.top);
+                    float bottom = Math.max(bars.bottom, gestures.bottom);
+
+                    float left = Math.max(bars.left, Math.max(gestures.left, cutout.left));
+                    float right = Math.max(bars.right, Math.max(gestures.right, cutout.right));
+
+                    onInsetsChanged(
+                            top / metrics.density,
+                            right / metrics.density,
+                            bottom / metrics.density,
+                            left / metrics.density);
+
+                    return insets;
+                });
+    }
+
     native void main();
+
+    static native void onInsetsChanged(float top, float right, float bottom, float left);
 
     static {
         System.loadLibrary("native");
     }
 
-    public void removeView(long id) {
+    private void removeView(long id) {
         textLayout.remove(id);
         textInputLayout.remove(id);
         imageLayout.remove(id);
@@ -91,24 +133,24 @@ public class OriActivity extends AppCompatActivity {
 
     /* ---------- UNITS ---------- */
 
-    public int px(float logical) {
+    private int px(float logical) {
         return (int) Math.round(logical * (float) metrics.density);
     }
 
-    public float lc(int px) {
+    private float lc(int px) {
         return px / (float) metrics.density;
     }
 
     /* ---------- WINDOW ---------- */
 
-    public void windowSetContents(long contents) {
+    private void windowSetContents(long contents) {
         queueUiTask(() -> {
             root.removeAllViews();
             root.addView(views.get(contents));
         });
     }
 
-    public void windowSetContentLayout(float x, float y, float width, float height) {
+    private void windowSetContentLayout(float x, float y, float width, float height) {
         queueUiTask(() -> {
             OriGroup.LayoutParams lp = new OriGroup.LayoutParams(
                     px(width), px(height), px(x), px(y));
@@ -117,15 +159,61 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public int windowGetWidth() {
-        return (int) Math.round(lc(metrics.widthPixels));
+    @SuppressWarnings("deprecation")
+    private void windowSetStatusBar(
+            boolean isLight,
+            boolean setColor,
+            float r,
+            float g,
+            float b,
+            float a) {
+        new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
+            .setAppearanceLightStatusBars(isLight);
+
+        if (setColor) {
+            getWindow().setStatusBarColor(rgba(r, g, b, a));
+        } else {
+            TypedValue value = new TypedValue();
+            getTheme().resolveAttribute(android.R.attr.statusBarColor, value, true);
+            getWindow().setStatusBarColor(value.data);
+        }
     }
 
-    public int windowGetHeight() {
-        return (int) Math.round(lc(metrics.heightPixels));
+    @SuppressWarnings("deprecation")
+    private void windowSetNavigationBar(
+            boolean isLight,
+            boolean setColor,
+            float r,
+            float g,
+            float b,
+            float a) {
+        new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
+            .setAppearanceLightNavigationBars(isLight);
+
+        if (setColor) {
+            getWindow().setNavigationBarColor(rgba(r, g, b, a));
+        } else {
+            TypedValue value = new TypedValue();
+            getTheme().resolveAttribute(android.R.attr.navigationBarColor, value, true);
+            getWindow().setNavigationBarColor(value.data);
+        }
     }
 
-    public void windowStartAnimating() {
+    private int windowGetWidth() {
+        WindowMetrics metrics = WindowMetricsCalculator.getOrCreate()
+            .computeCurrentWindowMetrics(this);
+
+        return (int) Math.round(lc(metrics.getBounds().width()));
+    }
+
+    private int windowGetHeight() {
+        WindowMetrics metrics = WindowMetricsCalculator.getOrCreate()
+            .computeCurrentWindowMetrics(this);
+
+        return (int) Math.round(lc(metrics.getBounds().height()));
+    }
+
+    private void windowStartAnimating() {
         queueUiTask(() -> {
             if (!isAnimating) {
                 isAnimating = true;
@@ -135,7 +223,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void windowStopAnimating() {
+    private void windowStopAnimating() {
         isAnimating = false;
         lastFrameTime = 0;
     }
@@ -159,28 +247,28 @@ public class OriActivity extends AppCompatActivity {
 
     /* ---------- GROUP ---------- */
 
-    public void createGroup(long id) {
+    private void createGroup(long id) {
         queueUiTask(() -> {
             OriGroup view = new OriGroup(this);
             views.put(id, view);
         });
     }
 
-    public void groupInsert(long id, int index, long child) {
+    private void groupInsert(long id, int index, long child) {
         queueUiTask(() -> {
             OriGroup view = (OriGroup) views.get(id);
             view.addView(views.get(child), index);
         });
     }
 
-    public void groupRemove(long id, int index) {
+    private void groupRemove(long id, int index) {
         queueUiTask(() -> {
             OriGroup view = (OriGroup) views.get(id);
             view.removeViewAt(index);
         });
     }
 
-    public void groupSwap(long id, int indexA, int indexB) {
+    private void groupSwap(long id, int indexA, int indexB) {
         queueUiTask(() -> {
             OriGroup view = (OriGroup) views.get(id);
 
@@ -197,7 +285,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void groupSetChildLayout(long id, int index,
+    private void groupSetChildLayout(long id, int index,
             float x, float y,
             float width, float height) {
         queueUiTask(() -> {
@@ -213,7 +301,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void groupSetBackgroundColor(long id, float r, float g, float b, float a) {
+    private void groupSetBackgroundColor(long id, float r, float g, float b, float a) {
         queueUiTask(() -> {
             OriGroup view = (OriGroup) views.get(id);
 
@@ -222,21 +310,21 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void groupSetCornerRadii(long id, float tl, float tr, float br, float bl) {
+    private void groupSetCornerRadii(long id, float tl, float tr, float br, float bl) {
         queueUiTask(() -> {
             OriGroup view = (OriGroup) views.get(id);
             view.setCornerRadii(px(tl), px(tr), px(br), px(bl));
         });
     }
 
-    public void groupSetBorderWidth(long id, float t, float r, float b, float l) {
+    private void groupSetBorderWidth(long id, float t, float r, float b, float l) {
         queueUiTask(() -> {
             OriGroup view = (OriGroup) views.get(id);
             view.setBorderWidth(px(t), px(r), px(b), px(l));
         });
     }
 
-    public void groupSetBorderColor(long id, float r, float g, float b, float a) {
+    private void groupSetBorderColor(long id, float r, float g, float b, float a) {
         queueUiTask(() -> {
             OriGroup view = (OriGroup) views.get(id);
 
@@ -245,14 +333,14 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void groupSetOverflow(long id, boolean visible) {
+    private void groupSetOverflow(long id, boolean visible) {
         queueUiTask(() -> {
             OriGroup view = (OriGroup) views.get(id);
             view.setOverflow(visible);
         });
     }
 
-    public void groupSetShadow(long id,
+    private void groupSetShadow(long id,
             float r, float g, float b, float a,
             float dx, float dy,
             float blur, float spread) {
@@ -265,14 +353,14 @@ public class OriActivity extends AppCompatActivity {
 
     /* ---------- PRESSABLE ---------- */
 
-    public void createPressable(long id) {
+    private void createPressable(long id) {
         queueUiTask(() -> {
             OriPressable view = new OriPressable(this, id);
             views.put(id, view);
         });
     }
 
-    public void pressableSetContents(long id, long contents) {
+    private void pressableSetContents(long id, long contents) {
         queueUiTask(() -> {
             OriPressable view = (OriPressable) views.get(id);
             view.removeAllViews();
@@ -280,7 +368,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void pressableSetContentSize(long id, float width, float height) {
+    private void pressableSetContentSize(long id, float width, float height) {
         queueUiTask(() -> {
             OriPressable view = (OriPressable) views.get(id);
             OriPressable.LayoutParams lp = new OriPressable.LayoutParams(
@@ -292,7 +380,7 @@ public class OriActivity extends AppCompatActivity {
 
     /* ---------- SCROLL ---------- */
 
-    public void createScroll(long id) {
+    private void createScroll(long id) {
         queueUiTask(() -> {
             FrameLayout view = new FrameLayout(this);
             ScrollView scroll = new ScrollView(this);
@@ -305,7 +393,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void scrollSetContents(long id, long contents) {
+    private void scrollSetContents(long id, long contents) {
         queueUiTask(() -> {
             FrameLayout view = (FrameLayout) views.get(id);
             ViewGroup scroll = (ViewGroup) view.getChildAt(0);
@@ -315,7 +403,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void scrollSetContentSize(long id, float width, float height) {
+    private void scrollSetContentSize(long id, float width, float height) {
         queueUiTask(() -> {
             FrameLayout view = (FrameLayout) views.get(id);
             ViewGroup scroll = (ViewGroup) view.getChildAt(0);
@@ -327,7 +415,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void scrollSetContentLayout(long id,
+    private void scrollSetContentLayout(long id,
             float x, float y,
             float width, float height) {
         queueUiTask(() -> {
@@ -341,7 +429,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void scrollSetVertical(long id, boolean vertical) {
+    private void scrollSetVertical(long id, boolean vertical) {
         queueUiTask(() -> {
             FrameLayout view = (FrameLayout) views.get(id);
             ViewGroup scroll = (ViewGroup) view.getChildAt(0);
@@ -367,14 +455,14 @@ public class OriActivity extends AppCompatActivity {
 
     /* ---------- TRANSFORM ---------- */
 
-    public void createTransform(long id) {
+    private void createTransform(long id) {
         queueUiTask(() -> {
             FrameLayout view = new FrameLayout(this);
             views.put(id, view);
         });
     }
 
-    public void transformSetContents(long id, long contents) {
+    private void transformSetContents(long id, long contents) {
         queueUiTask(() -> {
             FrameLayout view = (FrameLayout) views.get(id);
             view.removeAllViews();
@@ -382,7 +470,8 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void transformSetTransform(long id,
+    @SuppressWarnings("deprecation")
+    private void transformSetTransform(long id,
             float width, float height,
             float x, float y,
             float angle,
@@ -405,7 +494,7 @@ public class OriActivity extends AppCompatActivity {
 
     /* ---------- TEXT ---------- */
 
-    public void createText(long id) {
+    private void createText(long id) {
         queueUiTask(() -> {
             TextView view = new TextView(this);
             views.put(id, view);
@@ -414,12 +503,12 @@ public class OriActivity extends AppCompatActivity {
         textLayout.put(id, new TextLayout());
     }
 
-    public void textSetText(long id, String text, int wrap) {
+    private void textSetText(long id, String text, int wrap) {
         TextLayout layout = textLayout.get(id);
         layout.text = new SpannableString(text);
     }
 
-    public void textSetSpan(long id,
+    private void textSetSpan(long id,
             int start, int end,
             float size,
             String family,
@@ -463,17 +552,10 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public float textMeasureWidth(long id, float maxWidth) {
+    private float textMeasureWidth(long id, float maxWidth) {
         TextLayout layout = textLayout.get(id);
 
-        StaticLayout staticLayout = new StaticLayout(
-                layout.text,
-                new TextPaint(),
-                px(maxWidth),
-                Layout.Alignment.ALIGN_NORMAL,
-                1.0f,
-                0.0f,
-                true);
+        StaticLayout staticLayout = createStaticLayout(layout.text, maxWidth);
 
         float width = 0.0f;
 
@@ -484,11 +566,29 @@ public class OriActivity extends AppCompatActivity {
         return width / metrics.density;
     }
 
-    public float textMeasureHeight(long id, float maxWidth) {
+    private float textMeasureHeight(long id, float maxWidth) {
         TextLayout layout = textLayout.get(id);
 
-        StaticLayout staticLayout = new StaticLayout(
-                layout.text,
+        StaticLayout staticLayout = createStaticLayout(layout.text, maxWidth);
+
+        return lc(staticLayout.getHeight());
+    }
+
+    StaticLayout createStaticLayout(
+            SpannableString text,
+            float maxWidth) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return StaticLayout.Builder.obtain(
+                    text,
+                    0,
+                    text.length(),
+                    new TextPaint(),
+                    px(maxWidth))
+                    .build();
+        } else {
+            @SuppressWarnings("deprecation")
+            StaticLayout layout = new StaticLayout(
+                text,
                 new TextPaint(),
                 px(maxWidth),
                 Layout.Alignment.ALIGN_NORMAL,
@@ -496,16 +596,17 @@ public class OriActivity extends AppCompatActivity {
                 0.0f,
                 true);
 
-        return lc(staticLayout.getHeight());
+            return layout;
+        }
     }
 
     static class TextLayout {
-        public SpannableString text;
+        private SpannableString text;
     }
 
     /* ---------- TEXT INPUT ---------- */
 
-    public void createTextInput(long id) {
+    private void createTextInput(long id) {
         queueUiTask(() -> {
             OriEditText view = new OriEditText(this, id);
             views.put(id, view);
@@ -514,21 +615,21 @@ public class OriActivity extends AppCompatActivity {
         textInputLayout.put(id, new TextInputLayout());
     }
 
-    public void textInputSetSingleLine(long id, boolean singleline) {
+    private void textInputSetSingleLine(long id, boolean singleline) {
         queueUiTask(() -> {
             OriEditText view = (OriEditText) views.get(id);
             view.setSingleLine(singleline);
         });
     }
 
-    public void textInputSetText(long id, String text) {
+    private void textInputSetText(long id, String text) {
         queueUiTask(() -> {
             OriEditText view = (OriEditText) views.get(id);
             view.setText(text);
         });
     }
 
-    public void textInputSetFont(long id,
+    private void textInputSetFont(long id,
             float textSize,
             String family,
             int weight,
@@ -555,14 +656,14 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void textInputSetPlaceholderText(long id, String text) {
+    private void textInputSetPlaceholderText(long id, String text) {
         queueUiTask(() -> {
             OriEditText view = (OriEditText) views.get(id);
             view.setPlaceholderText(text);
         });
     }
 
-    public void textInputSetPlaceholderFont(long id,
+    private void textInputSetPlaceholderFont(long id,
             float textSize,
             String family,
             int weight,
@@ -586,7 +687,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public float textInputMeasureHeight(long id) {
+    private float textInputMeasureHeight(long id) {
         TextInputLayout layout = textInputLayout.get(id);
 
         var fm = layout.paint.getFontMetrics();
@@ -599,13 +700,13 @@ public class OriActivity extends AppCompatActivity {
     }
 
     static class TextInputLayout {
-        public TextPaint paint = new TextPaint();
-        public TextPaint placeholderPaint = new TextPaint();
+        private TextPaint paint = new TextPaint();
+        private TextPaint placeholderPaint = new TextPaint();
     }
 
     /* ---------- IMAGE ---------- */
 
-    public void createImage(long id) {
+    private void createImage(long id) {
         queueUiTask(() -> {
             OriImage image = new OriImage(this);
             views.put(id, image);
@@ -614,7 +715,7 @@ public class OriActivity extends AppCompatActivity {
         imageLayout.put(id, new ImageLayout());
     }
 
-    public void imageLoadSvg(long id, byte[] data) {
+    private void imageLoadSvg(long id, byte[] data) {
         ImageLayout layout = imageLayout.get(id);
 
         try {
@@ -633,7 +734,7 @@ public class OriActivity extends AppCompatActivity {
         }
     }
 
-    public void imageLoadBitmap(long id, byte[] data) {
+    private void imageLoadBitmap(long id, byte[] data) {
         ImageLayout layout = imageLayout.get(id);
 
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
@@ -651,7 +752,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public void imageSetTint(long id,
+    private void imageSetTint(long id,
             boolean isSet,
             float r, float g, float b, float a) {
         queueUiTask(() -> {
@@ -661,30 +762,30 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public float imageGetWidth(long id) {
+    private float imageGetWidth(long id) {
         ImageLayout layout = imageLayout.get(id);
         return layout.width;
     }
 
-    public float imageGetHeight(long id) {
+    private float imageGetHeight(long id) {
         ImageLayout layout = imageLayout.get(id);
         return layout.height;
     }
 
     static class ImageLayout {
-        public float width;
-        public float height;
+        private float width;
+        private float height;
     }
 
     /* ---------- HELPER ---------- */
 
     ArrayDeque<Runnable> uiTasks = new ArrayDeque<>();
 
-    public void queueUiTask(Runnable task) {
+    private void queueUiTask(Runnable task) {
         uiTasks.addLast(task);
     }
 
-    public void runUiTasks() {
+    private void runUiTasks() {
         runOnUiThread(() -> {
             root.suppressLayout(true);
 
@@ -698,7 +799,7 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    public static int rgba(float r, float g, float b, float a) {
+    private static int rgba(float r, float g, float b, float a) {
         return Color.argb(
                 (int) Math.round(a * 255.0f),
                 (int) Math.round(r * 255.0f),
@@ -706,7 +807,7 @@ public class OriActivity extends AppCompatActivity {
                 (int) Math.round(b * 255.0f));
     }
 
-    public static Typeface createTypeface(String family, int weight, boolean italic) {
+    private static Typeface createTypeface(String family, int weight, boolean italic) {
         Typeface base = Typeface.create(family, Typeface.NORMAL);
 
         if (base == null) {

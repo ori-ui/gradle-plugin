@@ -15,6 +15,10 @@ gradlePlugin {
     }
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.addAll(listOf("-Xlint:unchecked", "-Xlint:deprecation"))
+}
+
 dependencies {
     compileOnly(gradleApi())
     compileOnly("com.android.tools.build:gradle:9.0.1")
