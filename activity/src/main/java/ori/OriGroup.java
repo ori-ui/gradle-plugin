@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
+import android.graphics.Rect;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Paint;
@@ -108,7 +109,7 @@ public class OriGroup extends ViewGroup {
         shadowRadius = radius;
         shadowSpread = spread;
 
-        generateShadow(getWidth(), getHeight());
+        generateShadow(getWidth(), getHeight(), true);
         invalidate();
     }
 
@@ -169,7 +170,7 @@ public class OriGroup extends ViewGroup {
         computePaths(w, h);
 
         if (drawShadow) {
-            generateShadow(w, h);
+            generateShadow(w, h, false);
         }
     }
 
@@ -178,15 +179,86 @@ public class OriGroup extends ViewGroup {
         super.onDraw(canvas);
 
         if (drawShadow) {
-            canvas.drawBitmap(
-                    shadowBitmap,
-                    shadowOffsetX - shadowRadius - shadowSpread,
-                    shadowOffsetY - shadowRadius - shadowSpread,
-                    null);
+            drawShadow(canvas);
         }
 
         canvas.drawPath(backgroundPath, backgroundPaint);
         canvas.drawPath(borderPath, borderPaint);
+    }
+
+    private void drawShadow(Canvas canvas) {
+        int w = getWidth();
+        int h = getHeight();
+
+        int sw = shadowBitmap.getWidth();
+        int sh = shadowBitmap.getHeight();
+
+        int padding = (int) (shadowSpread + shadowRadius);
+
+        Rect srcTL = new Rect(0     , 0     , sw / 2, sh / 2);
+        Rect srcTR = new Rect(sw / 2, 0     , sw,     sh / 2);
+        Rect srcBL = new Rect(0     , sw / 2, sw / 2, sh    );
+        Rect srcBR = new Rect(sw / 2, sw / 2, sw    , sh    );
+
+        Rect srcT = new Rect(sw / 2 - 1, 0         , sw / 2 + 1, sh / 2);
+        Rect srcB = new Rect(sw / 2 - 1, sh / 2    , sw / 2 + 1, sh    );
+        Rect srcL = new Rect(0         , sh / 2 - 1, sw / 2, sh / 2 + 1);
+        Rect srcR = new Rect(sw / 2    , sh / 2 - 1, sw    , sh / 2 + 1);
+
+        Rect srcC = new Rect(sw / 2, sh / 2, sw / 2 + 1, sh / 2 + 1);
+
+        Rect dst = new Rect(
+                (int) shadowOffsetX - padding,
+                (int) shadowOffsetY - padding,
+                getWidth() + padding + (int) shadowOffsetX,
+                getHeight() + padding + (int) shadowOffsetY);
+
+        Rect dstTL = new Rect(dst.left          , dst.top            , dst.left + sw / 2, dst.top + sh / 2);
+        Rect dstTR = new Rect(dst.right - sw / 2, dst.top            , dst.right        , dst.top + sh / 2);
+        Rect dstBL = new Rect(dst.left          , dst.bottom - sh / 2, dst.left + sw / 2, dst.bottom      );
+        Rect dstBR = new Rect(dst.right - sw / 2, dst.bottom - sh / 2, dst.right        , dst.bottom      );
+
+        Rect dstT = new Rect(
+                dst.left + sw / 2,
+                dst.top,
+                dst.right - sw / 2,
+                dst.top + sh / 2);
+
+        Rect dstB = new Rect(
+                dst.left + sw / 2,
+                dst.bottom - sh / 2,
+                dst.right - sw / 2,
+                dst.bottom);
+
+        Rect dstL = new Rect(
+                dst.left,
+                dst.top + sh / 2,
+                dst.left + sw / 2,
+                dst.bottom - sh / 2);
+
+        Rect dstR = new Rect(
+                dst.right - sw / 2,
+                dst.top + sh / 2,
+                dst.right,
+                dst.bottom - sh / 2);
+
+        Rect dstC = new Rect(
+                dst.left + sw / 2,
+                dst.top + sh / 2,
+                dst.right - sw / 2,
+                dst.bottom - sh / 2);
+
+        canvas.drawBitmap(shadowBitmap, srcTL, dstTL, null);
+        canvas.drawBitmap(shadowBitmap, srcTR, dstTR, null);
+        canvas.drawBitmap(shadowBitmap, srcBL, dstBL, null);
+        canvas.drawBitmap(shadowBitmap, srcBR, dstBR, null);
+
+        canvas.drawBitmap(shadowBitmap, srcT, dstT, null);
+        canvas.drawBitmap(shadowBitmap, srcB, dstB, null);
+        canvas.drawBitmap(shadowBitmap, srcL, dstL, null);
+        canvas.drawBitmap(shadowBitmap, srcR, dstR, null);
+
+        canvas.drawBitmap(shadowBitmap, srcC, dstC, null);
     }
 
     @Override
@@ -263,14 +335,28 @@ public class OriGroup extends ViewGroup {
                 }, Path.Direction.CW);
     }
 
-    private void generateShadow(int w, int h) {
-        if (w <= 0 || h <= 0)
-            return;
+    private void generateShadow(int w, int h, boolean force) {
+        float radius = Math.max(
+                Math.max(radiusTL, radiusTR),
+                Math.max(radiusBL, radiusBR));
 
+        radius = Math.min(radius, Math.min(w, h) / 2.0f);
+
+        int size = (int) (radius * 2.0f);
         int padding = (int) (shadowRadius + shadowSpread) * 2;
 
+        if (shadowBitmap != null && !force
+                && shadowBitmap.getWidth() == size + padding
+                && shadowBitmap.getHeight() == size + padding) {
+            return;
+        }
+
+        if (size + padding <= 0) {
+            return;
+        }
+
         shadowBitmap = Bitmap.createBitmap(
-                w + padding, h + padding,
+                size + padding, size + padding,
                 Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(shadowBitmap);
@@ -278,7 +364,7 @@ public class OriGroup extends ViewGroup {
         shadowPath.reset();
         shadowPath.addRoundRect(
                 -shadowSpread, -shadowSpread,
-                w + shadowSpread, h + shadowSpread,
+                size + shadowSpread, size + shadowSpread,
                 new float[] {
                         radiusTL, radiusTL,
                         radiusTR, radiusTR,
