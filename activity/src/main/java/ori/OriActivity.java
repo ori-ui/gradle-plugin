@@ -86,7 +86,6 @@ public class OriActivity extends AppCompatActivity {
         navigationBarColor = value.data;
 
         root = new OriGroup(this);
-        root.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         setContentView(root);
 
         main();
@@ -250,8 +249,10 @@ public class OriActivity extends AppCompatActivity {
     }
 
     private void windowStopAnimating() {
-        isAnimating = false;
-        lastFrameTime = 0;
+        if (isAnimating) {
+            isAnimating = false;
+            lastFrameTime = 0;
+        }
     }
 
     void frameCallback(long frameTime) {

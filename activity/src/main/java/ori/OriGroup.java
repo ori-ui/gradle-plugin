@@ -197,12 +197,12 @@ public class OriGroup extends ViewGroup {
         Rect srcBL = new Rect(0     , sw / 2, sw / 2, sh    );
         Rect srcBR = new Rect(sw / 2, sw / 2, sw    , sh    );
 
-        Rect srcT = new Rect(sw / 2 - 1, 0         , sw / 2 + 1, sh / 2);
-        Rect srcB = new Rect(sw / 2 - 1, sh / 2    , sw / 2 + 1, sh    );
-        Rect srcL = new Rect(0         , sh / 2 - 1, sw / 2, sh / 2 + 1);
-        Rect srcR = new Rect(sw / 2    , sh / 2 - 1, sw    , sh / 2 + 1);
+        Rect srcT = new Rect(sw / 2 - 1, 0         , sw / 2 + 1, sh / 2    );
+        Rect srcB = new Rect(sw / 2 - 1, sh / 2    , sw / 2 + 1, sh        );
+        Rect srcL = new Rect(0         , sh / 2 - 1, sw / 2    , sh / 2 + 1);
+        Rect srcR = new Rect(sw / 2    , sh / 2 - 1, sw        , sh / 2 + 1);
 
-        Rect srcC = new Rect(sw / 2, sh / 2, sw / 2 + 1, sh / 2 + 1);
+        Rect srcC = new Rect(sw / 2 - 1, sh / 2 - 1, sw / 2 + 1, sh / 2 + 1);
 
         Rect dst = new Rect(
                 (int) shadowOffsetX - padding,
@@ -342,13 +342,13 @@ public class OriGroup extends ViewGroup {
         int size = (int) (radius * 2.0f);
         int padding = (int) (shadowRadius + shadowSpread) * 2;
 
-        if (shadowBitmap != null && !force
-                && shadowBitmap.getWidth() == size + padding
-                && shadowBitmap.getHeight() == size + padding) {
+        if (size + padding <= 0) {
             return;
         }
 
-        if (size + padding <= 0) {
+        if (shadowBitmap != null && !force
+                && shadowBitmap.getWidth() == size + padding
+                && shadowBitmap.getHeight() == size + padding) {
             return;
         }
 
