@@ -138,7 +138,13 @@ public class OriGroup extends ViewGroup {
     }
 
     @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {}
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        for (int i = 0; i < getChildCount(); i++) {
+            View child = getChildAt(i);
+            LayoutParams lp = (LayoutParams) child.getLayoutParams();
+            child.layout(lp.x, lp.y, lp.x + lp.width, lp.y + lp.height);
+        }
+    }
 
     @Override
     protected LayoutParams generateDefaultLayoutParams() {

@@ -178,7 +178,7 @@ public class OriActivity extends AppCompatActivity {
             lp.x = px(x);
             lp.y = px(y);
 
-            child.layout(px(x), px(y), px(x) + px(width), px(y) + px(height));
+            child.requestLayout();
         });
     }
 
@@ -327,7 +327,7 @@ public class OriActivity extends AppCompatActivity {
             lp.x = px(x);
             lp.y = px(y);
 
-            child.layout(px(x), px(y), px(x) + px(width), px(y) + px(height));
+            child.requestLayout();
         });
     }
 
@@ -407,7 +407,7 @@ public class OriActivity extends AppCompatActivity {
             lp.width = px(width);
             lp.height = px(height);
 
-            child.layout(0, 0, px(width), px(height));
+            child.requestLayout();
         });
     }
 
@@ -446,7 +446,7 @@ public class OriActivity extends AppCompatActivity {
             lp.width = px(width);
             lp.height = px(height);
 
-            group.layout(0, 0, px(width), px(height));
+            group.requestLayout();
         });
     }
 
@@ -465,7 +465,7 @@ public class OriActivity extends AppCompatActivity {
             lp.x = px(x);
             lp.y = px(y);
 
-            child.layout(px(x), px(y), px(x) + px(width), px(y) + px(height));
+            child.requestLayout();
         });
     }
 
