@@ -52,18 +52,18 @@ import java.lang.Long;
 import java.io.ByteArrayInputStream;
 
 public class OriActivity extends AppCompatActivity {
-    DisplayMetrics metrics;
-    OriGroup root;
-    boolean isAnimating = false;
-    long lastFrameTime = 0;
+    private DisplayMetrics metrics;
+    private OriGroup root;
+    private boolean isAnimating = false;
+    private long lastFrameTime = 0;
 
-    int statusBarColor = 0;
-    int navigationBarColor = 0;
+    private int statusBarColor = 0;
+    private int navigationBarColor = 0;
 
-    Map<Long, View> views = new HashMap<>();
-    Map<Long, TextLayout> textLayout = new HashMap<>();
-    Map<Long, TextInputLayout> textInputLayout = new HashMap<>();
-    Map<Long, ImageLayout> imageLayout = new HashMap<>();
+    private Map<Long, View> views = new HashMap<>();
+    private Map<Long, TextLayout> textLayout = new HashMap<>();
+    private Map<Long, TextInputLayout> textInputLayout = new HashMap<>();
+    private Map<Long, ImageLayout> imageLayout = new HashMap<>();
 
     @Override
     @SuppressWarnings("deprecation")
@@ -261,6 +261,8 @@ public class OriActivity extends AppCompatActivity {
         long duration = frameTime - lastFrameTime;
         lastFrameTime = frameTime;
         onAnimationFrame(duration);
+
+        executeUiTasks();
 
         Choreographer.getInstance()
                 .postFrameCallback(this::frameCallback);
@@ -597,7 +599,7 @@ public class OriActivity extends AppCompatActivity {
         return lc(staticLayout.getHeight());
     }
 
-    StaticLayout createStaticLayout(
+    private StaticLayout createStaticLayout(
             SpannableString text,
             float maxWidth) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -623,7 +625,7 @@ public class OriActivity extends AppCompatActivity {
         }
     }
 
-    static class TextLayout {
+    private static class TextLayout {
         private SpannableString text;
     }
 
@@ -722,7 +724,7 @@ public class OriActivity extends AppCompatActivity {
         return Math.max(height, placeholderHeight) / metrics.density + 4.0f;
     }
 
-    static class TextInputLayout {
+    private static class TextInputLayout {
         private TextPaint paint = new TextPaint();
         private TextPaint placeholderPaint = new TextPaint();
     }
@@ -802,7 +804,7 @@ public class OriActivity extends AppCompatActivity {
 
     /* ---------- HELPER ---------- */
 
-    ArrayDeque<Runnable> uiTasks = new ArrayDeque<>();
+    private ArrayDeque<Runnable> uiTasks = new ArrayDeque<>();
 
     private void queueUiTask(Runnable task) {
         uiTasks.addLast(task);
@@ -810,16 +812,20 @@ public class OriActivity extends AppCompatActivity {
 
     private void runUiTasks() {
         runOnUiThread(() -> {
-            root.suppressLayout(true);
-
-            try {
-                while (!uiTasks.isEmpty()) {
-                    uiTasks.removeFirst().run();
-                }
-            } finally {
-                root.suppressLayout(false);
-            }
+            executeUiTasks();
         });
+    }
+
+    private void executeUiTasks() {
+        root.suppressLayout(true);
+
+        try {
+            while (!uiTasks.isEmpty()) {
+                uiTasks.removeFirst().run();
+            }
+        } finally {
+            root.suppressLayout(false);
+        }
     }
 
     private static int rgba(float r, float g, float b, float a) {
