@@ -57,17 +57,29 @@ public class OriActivity extends AppCompatActivity {
     boolean isAnimating = false;
     long lastFrameTime = 0;
 
+    int statusBarColor = 0;
+    int navigationBarColor = 0;
+
     Map<Long, View> views = new HashMap<>();
     Map<Long, TextLayout> textLayout = new HashMap<>();
     Map<Long, TextInputLayout> textInputLayout = new HashMap<>();
     Map<Long, ImageLayout> imageLayout = new HashMap<>();
 
     @Override
+    @SuppressWarnings("deprecation")
     public void onCreate(Bundle savedInstantanceState) {
         super.onCreate(savedInstantanceState);
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         metrics = getResources().getDisplayMetrics();
+
+        TypedValue value = new TypedValue();
+
+        getTheme().resolveAttribute(android.R.attr.statusBarColor, value, true);
+        statusBarColor = value.data;
+
+        getTheme().resolveAttribute(android.R.attr.navigationBarColor, value, true);
+        navigationBarColor = value.data;
 
         root = new OriGroup(this);
         setContentView(root);
@@ -76,9 +88,12 @@ public class OriActivity extends AppCompatActivity {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void onResume() {
         super.onResume();
 
+        getWindow().setStatusBarColor(statusBarColor);
+        getWindow().setNavigationBarColor(navigationBarColor);
         getWindow().getDecorView().post(this::attachInsetsListener);
     }
 
@@ -167,16 +182,20 @@ public class OriActivity extends AppCompatActivity {
             float g,
             float b,
             float a) {
-        new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
-            .setAppearanceLightStatusBars(isLight);
+        queueUiTask(() -> {
+            new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
+                .setAppearanceLightStatusBars(isLight);
 
-        if (setColor) {
-            getWindow().setStatusBarColor(rgba(r, g, b, a));
-        } else {
-            TypedValue value = new TypedValue();
-            getTheme().resolveAttribute(android.R.attr.statusBarColor, value, true);
-            getWindow().setStatusBarColor(value.data);
-        }
+            if (setColor) {
+                statusBarColor = rgba(r, g, b, a);
+            } else {
+                TypedValue value = new TypedValue();
+                getTheme().resolveAttribute(android.R.attr.statusBarColor, value, true);
+                statusBarColor = value.data;
+            }
+
+            getWindow().setStatusBarColor(statusBarColor);
+        });
     }
 
     @SuppressWarnings("deprecation")
@@ -187,16 +206,20 @@ public class OriActivity extends AppCompatActivity {
             float g,
             float b,
             float a) {
-        new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
-            .setAppearanceLightNavigationBars(isLight);
+        queueUiTask(() -> {
+            new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
+                .setAppearanceLightNavigationBars(isLight);
 
-        if (setColor) {
-            getWindow().setNavigationBarColor(rgba(r, g, b, a));
-        } else {
-            TypedValue value = new TypedValue();
-            getTheme().resolveAttribute(android.R.attr.navigationBarColor, value, true);
-            getWindow().setNavigationBarColor(value.data);
-        }
+            if (setColor) {
+                navigationBarColor = rgba(r, g, b, a);
+            } else {
+                TypedValue value = new TypedValue();
+                getTheme().resolveAttribute(android.R.attr.navigationBarColor, value, true);
+                navigationBarColor = value.data;
+            }
+
+            getWindow().setNavigationBarColor(navigationBarColor);
+        });
     }
 
     private int windowGetWidth() {
