@@ -53,6 +53,7 @@ import java.io.ByteArrayInputStream;
 
 public class OriActivity extends AppCompatActivity {
     private DisplayMetrics metrics;
+    private WindowMetrics windowMetrics;
     private OriGroup root;
     private boolean isAnimating = false;
     private long lastFrameTime = 0;
@@ -73,6 +74,9 @@ public class OriActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         metrics = getResources().getDisplayMetrics();
 
+        windowMetrics = WindowMetricsCalculator.getOrCreate()
+            .computeCurrentWindowMetrics(this);
+
         TypedValue value = new TypedValue();
 
         getTheme().resolveAttribute(android.R.attr.statusBarColor, value, true);
@@ -82,6 +86,7 @@ public class OriActivity extends AppCompatActivity {
         navigationBarColor = value.data;
 
         root = new OriGroup(this);
+        root.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         setContentView(root);
 
         main();
@@ -167,10 +172,14 @@ public class OriActivity extends AppCompatActivity {
 
     private void windowSetContentLayout(float x, float y, float width, float height) {
         queueUiTask(() -> {
-            OriGroup.LayoutParams lp = new OriGroup.LayoutParams(
-                    px(width), px(height), px(x), px(y));
+            View child = root.getChildAt(0);
+            OriGroup.LayoutParams lp = (OriGroup.LayoutParams) child.getLayoutParams();
+            lp.width = px(width);
+            lp.height = px(height);
+            lp.x = px(x);
+            lp.y = px(y);
 
-            root.getChildAt(0).setLayoutParams(lp);
+            child.layout(px(x), px(y), px(x) + px(width), px(y) + px(height));
         });
     }
 
@@ -223,17 +232,11 @@ public class OriActivity extends AppCompatActivity {
     }
 
     private int windowGetWidth() {
-        WindowMetrics metrics = WindowMetricsCalculator.getOrCreate()
-            .computeCurrentWindowMetrics(this);
-
-        return (int) Math.round(lc(metrics.getBounds().width()));
+        return (int) Math.round(lc(windowMetrics.getBounds().width()));
     }
 
     private int windowGetHeight() {
-        WindowMetrics metrics = WindowMetricsCalculator.getOrCreate()
-            .computeCurrentWindowMetrics(this);
-
-        return (int) Math.round(lc(metrics.getBounds().height()));
+        return (int) Math.round(lc(windowMetrics.getBounds().height()));
     }
 
     private void windowStartAnimating() {
@@ -317,12 +320,13 @@ public class OriActivity extends AppCompatActivity {
             OriGroup view = (OriGroup) views.get(id);
             View child = view.getChildAt(index);
 
-            OriGroup.LayoutParams lp = new OriGroup.LayoutParams(
-                    px(width), px(height),
-                    px(x), px(y));
+            OriGroup.LayoutParams lp = (OriGroup.LayoutParams) child.getLayoutParams();
+            lp.width = px(width);
+            lp.height = px(height);
+            lp.x = px(x);
+            lp.y = px(y);
 
-            child.setLayoutParams(lp);
-            child.layout(px(x), px(y), px(width), px(height));
+            child.layout(px(x), px(y), px(x) + px(width), px(y) + px(height));
         });
     }
 
@@ -396,10 +400,13 @@ public class OriActivity extends AppCompatActivity {
     private void pressableSetContentSize(long id, float width, float height) {
         queueUiTask(() -> {
             OriPressable view = (OriPressable) views.get(id);
-            OriPressable.LayoutParams lp = new OriPressable.LayoutParams(
-                    px(width), px(height));
+            View child = view.getChildAt(0);
 
-            view.getChildAt(0).setLayoutParams(lp);
+            OriPressable.LayoutParams lp = (OriPressable.LayoutParams) child.getLayoutParams();
+            lp.width = px(width);
+            lp.height = px(height);
+
+            child.layout(0, 0, px(width), px(height));
         });
     }
 
@@ -433,10 +440,12 @@ public class OriActivity extends AppCompatActivity {
             FrameLayout view = (FrameLayout) views.get(id);
             ViewGroup scroll = (ViewGroup) view.getChildAt(0);
             OriGroup group = (OriGroup) scroll.getChildAt(0);
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                    px(width), px(height));
 
-            group.setLayoutParams(lp);
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) group.getLayoutParams();
+            lp.width = px(width);
+            lp.height = px(height);
+
+            group.layout(0, 0, px(width), px(height));
         });
     }
 
@@ -447,10 +456,15 @@ public class OriActivity extends AppCompatActivity {
             FrameLayout view = (FrameLayout) views.get(id);
             ViewGroup scroll = (ViewGroup) view.getChildAt(0);
             OriGroup group = (OriGroup) scroll.getChildAt(0);
-            OriGroup.LayoutParams lp = new OriGroup.LayoutParams(
-                    px(width), px(height), px(x), px(y));
+            View child = group.getChildAt(0);
 
-            group.getChildAt(0).setLayoutParams(lp);
+            OriGroup.LayoutParams lp = (OriGroup.LayoutParams) child.getLayoutParams();
+            lp.width = px(width);
+            lp.height = px(height);
+            lp.x = px(x);
+            lp.y = px(y);
+
+            child.layout(px(x), px(y), px(x) + px(width), px(y) + px(height));
         });
     }
 
@@ -810,10 +824,14 @@ public class OriActivity extends AppCompatActivity {
         uiTasks.addLast(task);
     }
 
-    private void runUiTasks() {
+    private int runUiTasks() {
+        int count = uiTasks.size();
+
         runOnUiThread(() -> {
             executeUiTasks();
         });
+
+        return count;
     }
 
     private void executeUiTasks() {

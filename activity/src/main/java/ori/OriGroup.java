@@ -15,6 +15,8 @@ import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 
+import androidx.core.view.ViewCompat;
+
 public class OriGroup extends ViewGroup {
     private float radiusTL = 0.0f;
     private float radiusTR = 0.0f;
@@ -48,6 +50,8 @@ public class OriGroup extends ViewGroup {
     public OriGroup(Context context) {
         super(context);
         setWillNotDraw(false);
+        setClipChildren(false);
+        setClipToPadding(false);
 
         backgroundPaint.setStyle(Paint.Style.FILL);
         borderPaint.setStyle(Paint.Style.FILL);
@@ -90,7 +94,6 @@ public class OriGroup extends ViewGroup {
 
     public void setOverflow(boolean visible) {
         overflowVisible = visible;
-        setClipChildren(!visible);
         invalidate();
     }
 
@@ -122,8 +125,8 @@ public class OriGroup extends ViewGroup {
             View child = getChildAt(i);
             LayoutParams lp = (LayoutParams) child.getLayoutParams();
 
-            int childWidthSpec = View.MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
-            int childHeightSpec = View.MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
+            int childWidthSpec = View.MeasureSpec.makeMeasureSpec(lp.width, View.MeasureSpec.EXACTLY);
+            int childHeightSpec = View.MeasureSpec.makeMeasureSpec(lp.height, View.MeasureSpec.EXACTLY);
             child.measure(childWidthSpec, childHeightSpec);
 
             maxWidth = Math.max(maxWidth, lp.x + lp.width);
@@ -135,13 +138,7 @@ public class OriGroup extends ViewGroup {
     }
 
     @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        for (int i = 0; i < getChildCount(); i++) {
-            View child = getChildAt(i);
-            LayoutParams lp = (LayoutParams) child.getLayoutParams();
-            child.layout(lp.x, lp.y, lp.x + lp.width, lp.y + lp.height);
-        }
-    }
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {}
 
     @Override
     protected LayoutParams generateDefaultLayoutParams() {
