@@ -45,6 +45,18 @@ public class OriPlugin implements Plugin<Project> {
             AndroidComponentsExtension<?, ?, ?> components = project.getExtensions()
                     .getByType(AndroidComponentsExtension.class);
 
+            project.getTasks().register("getAdbExe", task -> {
+                String adbPath;
+
+                if (OperatingSystem.current().isWindows()) {
+                    adbPath = "platform-tools/adb.exe";
+                } else {
+                    adbPath = "platform-tools/adb";
+                }
+
+                System.out.println(components.getSdkComponents().getSdkDirectory().get().dir(adbPath));
+            });
+
             components.onVariants(
                     components.selector().all(),
                     variant -> {
