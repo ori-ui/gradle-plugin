@@ -286,7 +286,17 @@ public class OriGroup extends ViewGroup {
         canvas.drawBitmap(shadowBitmap, srcL, dstL, null);
         canvas.drawBitmap(shadowBitmap, srcR, dstR, null);
 
-        canvas.drawBitmap(shadowBitmap, srcC, dstC, null);
+        float r = Math.max(
+                Math.max(radiusTL, radiusTR),
+                Math.max(radiusBL, radiusBR));
+
+        if (dstC.left < r / 2
+                || dstC.top < r / 2
+                || dstC.right > getWidth() - r / 2
+                || dstC.bottom > getHeight() - r / 2)
+        {
+            canvas.drawBitmap(shadowBitmap, srcC, dstC, null);
+        }
     }
 
     @Override
