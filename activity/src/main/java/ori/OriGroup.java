@@ -36,7 +36,7 @@ public class OriGroup extends ViewGroup {
 
     private Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint shadowPaint = new Paint();
 
     private boolean drawBackground = false;
     private boolean drawBorder = false;
