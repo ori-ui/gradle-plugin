@@ -12,7 +12,9 @@ public class OriPressable extends FrameLayout {
 
     public OriPressable(Context context, long id) {
         super(context);
-        setBackgroundColor(0);
+        setClipChildren(false);
+        setClipToPadding(false);
+
         this.id = id;
     }
 

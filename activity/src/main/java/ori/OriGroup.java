@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Paint;
@@ -28,7 +29,6 @@ public class OriGroup extends ViewGroup {
     private float borderB = 0.0f;
     private float borderL = 0.0f;
 
-    private boolean drawShadow = false;
     private float shadowOffsetX = 0.0f;
     private float shadowOffsetY = 0.0f;
     private float shadowRadius = 0.0f;
@@ -37,6 +37,10 @@ public class OriGroup extends ViewGroup {
     private Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private boolean drawBackground = false;
+    private boolean drawBorder = false;
+    private boolean drawShadow = false;
 
     private Path backgroundPath = new Path();
     private Path borderPath = new Path();
@@ -53,15 +57,13 @@ public class OriGroup extends ViewGroup {
         setClipChildren(false);
         setClipToPadding(false);
 
-        backgroundPaint.setStyle(Paint.Style.FILL);
-        borderPaint.setStyle(Paint.Style.FILL);
-
         backgroundPaint.setColor(0);
         borderPaint.setColor(0);
     }
 
     public void setBackgroundColor(int color) {
         backgroundPaint.setColor(color);
+        drawBackground = color != 0;
         invalidate();
     }
 
@@ -89,6 +91,7 @@ public class OriGroup extends ViewGroup {
 
     public void setBorderColor(int color) {
         borderPaint.setColor(color);
+        drawBorder = color != 0;
         invalidate();
     }
 
@@ -179,14 +182,36 @@ public class OriGroup extends ViewGroup {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
         if (drawShadow) {
             drawShadow(canvas);
         }
 
+        if (drawBackground) {
+            drawBackground(canvas);
+        }
+
+        if (drawBorder) {
+            canvas.drawPath(borderPath, borderPaint);
+        }
+    }
+
+    private void drawBackground(Canvas canvas) {
+        // if there are no corners, fill a rect
+        if (radiusTL == 0 && radiusTR == 0 && radiusBR == 0 && radiusBL == 0) {
+            RectF rect = new RectF(0, 0, getWidth(), getHeight());
+            canvas.drawRect(rect, backgroundPaint);
+            return;
+        }
+
+        // if all the corners are the same, use draw round rect
+        if (radiusTL == radiusTR && radiusTL == radiusBL && radiusTL == radiusBR) {
+            RectF rect = new RectF(0, 0, getWidth(), getHeight());
+            canvas.drawRoundRect(rect, radiusTL, radiusTL, backgroundPaint);
+            return;
+        }
+
+        // otherwise draw the path
         canvas.drawPath(backgroundPath, backgroundPaint);
-        canvas.drawPath(borderPath, borderPaint);
     }
 
     private void drawShadow(Canvas canvas) {
@@ -280,6 +305,10 @@ public class OriGroup extends ViewGroup {
     }
 
     private void computeBackgroundPath(int w, int h) {
+        if (!drawBackground) {
+            return;
+        }
+
         backgroundPath.reset();
         backgroundPath.addRoundRect(
                 0, 0,
@@ -293,6 +322,10 @@ public class OriGroup extends ViewGroup {
     }
 
     private void computeBorderPath(int w, int h) {
+        if (!drawBorder) {
+            return;
+        }
+
         borderPath.reset();
         borderPath.addRoundRect(
                 0, 0,
@@ -321,6 +354,10 @@ public class OriGroup extends ViewGroup {
     }
 
     private void computeClipPath(int w, int h) {
+        if (overflowVisible) {
+            return;
+        }
+
         float tl = radiusTL - Math.max(borderT, borderL);
         float tr = radiusTR - Math.max(borderT, borderR);
         float br = radiusBR - Math.max(borderB, borderR);
