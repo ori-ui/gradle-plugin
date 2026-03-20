@@ -153,11 +153,25 @@ public class OriActivity extends AppCompatActivity {
     /* ---------- UNITS ---------- */
 
     private int px(float logical) {
-        return (int) Math.round(logical * (float) metrics.density);
+        return (int) Math.floor(logical * metrics.density);
     }
 
     private float lc(int px) {
         return px / (float) metrics.density;
+    }
+
+    /* ---------- VIEW ---------- */
+
+    private void viewSetHardwareLayer(long id, boolean enabled) {
+        queueUiTask(() -> {
+            View view = views.get(id);
+
+            if (enabled) {
+                view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            } else {
+                view.setLayerType(View.LAYER_TYPE_NONE, null);
+            }
+        });
     }
 
     /* ---------- WINDOW ---------- */
