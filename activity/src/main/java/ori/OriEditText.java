@@ -56,15 +56,29 @@ public class OriEditText extends AppCompatEditText {
         setImeOptions(EditorInfo.IME_ACTION_DONE);
 
         setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE
-                    || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && isSingline)) {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
                 onSubmit(id, getText().toString());
-
                 return true;
+            }
+
+            if (event != null) {
+                if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER && isSingline) {
+                    onSubmit(id, getText().toString());
+                    return true;
+                }
             }
 
             return false;
         });
+    }
+
+    @Override
+    public boolean onKeyPreIme(int keycode, KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            clearFocus();
+        }
+
+        return super.onKeyPreIme(keycode, event);
     }
 
     public void setText(String text) {
