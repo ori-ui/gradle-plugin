@@ -94,7 +94,7 @@ public class OriEditText extends AppCompatEditText {
         if (singleline) {
             setMaxLines(1);
         } else {
-            setMaxLines(-1);
+            setMaxLines(Integer.MAX_VALUE);
         }
     }
 
