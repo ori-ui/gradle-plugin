@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.Choreographer;
 import android.view.WindowInsets;
+import android.view.ViewTreeObserver;
 import android.widget.ScrollView;
 import android.widget.HorizontalScrollView;
 import android.widget.TextView;
@@ -433,6 +434,8 @@ public class OriActivity extends AppCompatActivity {
             ScrollView scroll = new ScrollView(this);
             OriGroup group = new OriGroup(this);
 
+            scrollSetOnScroll(id, scroll);
+
             scroll.addView(group);
             view.addView(scroll);
 
@@ -491,6 +494,8 @@ public class OriActivity extends AppCompatActivity {
 
             if (vertical && scroll instanceof HorizontalScrollView) {
                 ScrollView newScroll = new ScrollView(this);
+                scrollSetOnScroll(id, newScroll);
+
                 scroll.removeView(group);
                 newScroll.addView(group);
 
@@ -498,6 +503,8 @@ public class OriActivity extends AppCompatActivity {
                 view.addView(newScroll);
             } else if (!vertical && scroll instanceof ScrollView) {
                 HorizontalScrollView newScroll = new HorizontalScrollView(this);
+                scrollSetOnScroll(id, newScroll);
+
                 scroll.removeView(group);
                 newScroll.addView(group);
 
@@ -506,6 +513,19 @@ public class OriActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void scrollSetOnScroll(long id, ViewGroup scroll) {
+        scroll.getViewTreeObserver().addOnScrollChangedListener(
+            new ViewTreeObserver.OnScrollChangedListener() {
+                @Override
+                public void onScrollChanged() {
+                    onScrolled(id, lc(scroll.getScrollX()), lc(scroll.getScrollY()));
+                }
+            }
+        );
+    }
+
+    static native void onScrolled(long duration, float x, float y);
 
     /* ---------- TRANSFORM ---------- */
 
