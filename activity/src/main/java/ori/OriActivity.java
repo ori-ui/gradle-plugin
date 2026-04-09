@@ -142,12 +142,7 @@ public class OriActivity extends AppCompatActivity {
         imageLayout.remove(id);
 
         queueUiTask(() -> {
-            View view = views.remove(id);
-            ViewGroup parent = (ViewGroup) view.getParent();
-
-            if (parent != null) {
-                parent.removeView(view);
-            }
+            views.remove(id);
         });
     }
 
