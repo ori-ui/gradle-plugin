@@ -421,6 +421,62 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
+    /* ---------- MEASURE ---------- */
+
+    private void createMeasure(long id) {
+        queueUiTask(() -> {
+            FrameLayout view = new FrameLayout(this);
+            views.put(id, view);
+
+            view.getViewTreeObserver().addOnPreDrawListener(
+                new ViewTreeObserver.OnPreDrawListener() {
+                    float currentX = 0.0f;
+                    float currentY = 0.0f;
+
+                    @Override
+                    public boolean onPreDraw() {
+                        int[] location = new int[2];
+                        view.getLocationOnScreen(location);
+
+                        float x = lc(location[0]);
+                        float y = lc(location[1]);
+
+                        if (currentX != x || currentY != y) {
+                            currentX = x;
+                            currentY = y;
+
+                            measurePositionChanged(id, x, y);
+                        }
+
+                        return true;
+                    }
+                }
+            );
+        });
+    }
+
+    private void measureSetContents(long id, long contents) {
+        queueUiTask(() -> {
+            FrameLayout view = (FrameLayout) views.get(id);
+            view.removeAllViews();
+            view.addView(views.get(contents));
+        });
+    }
+
+    private void measureSetContentSize(long id, float width, float height) {
+        queueUiTask(() -> {
+            FrameLayout view = (FrameLayout) views.get(id);
+
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) view.getLayoutParams();
+            lp.width = px(width);
+            lp.height = px(height);
+
+            view.requestLayout();
+        });
+    }
+
+    native void measurePositionChanged(long id, float x, float y);
+
     /* ---------- SCROLL ---------- */
 
     private void createScroll(long id) {
