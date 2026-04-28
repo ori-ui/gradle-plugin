@@ -466,12 +466,13 @@ public class OriActivity extends AppCompatActivity {
     private void measureSetContentSize(long id, float width, float height) {
         queueUiTask(() -> {
             FrameLayout view = (FrameLayout) views.get(id);
+            View child = view.getChildAt(0);
 
-            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) view.getLayoutParams();
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) child.getLayoutParams();
             lp.width = px(width);
             lp.height = px(height);
 
-            view.requestLayout();
+            child.requestLayout();
         });
     }
 
