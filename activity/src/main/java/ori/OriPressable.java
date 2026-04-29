@@ -20,37 +20,43 @@ public class OriPressable extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+
+        boolean handled = false;
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 isPressed = true;
-                onPress(id, 0);
-                return true;
+                handled |= onPress(id, 0, x, y);
+                break;
 
             case MotionEvent.ACTION_MOVE:
-                if (event.getX() < 0.0
-                        || event.getY() < 0.0
-                        || event.getX() > getWidth()
-                        || event.getY() > getHeight()) {
+                if (x < 0.0 || y < 0.0 || x > getWidth() || y > getHeight()) {
                     if (isPressed) {
                         isPressed = false;
-                        onPress(id, 2);
+                        handled |= onPress(id, 2, x, y);
                     }
                 }
 
-                return true;
+                handled |= onMove(id, x, y);
+                break;
 
             case MotionEvent.ACTION_UP:
                 if (isPressed) {
                     isPressed = false;
-                    onPress(id, 1);
+                    handled |= onPress(id, 1, x, y);
                 }
 
-                return true;
+                break;
 
             default:
-                return false;
+                break;
         }
+
+        return handled;
     }
 
-    static native boolean onPress(long id, int state);
+    static native boolean onPress(long id, int state, float x, float y);
+    static native boolean onMove(long id, float x, float y);
 }
