@@ -421,6 +421,13 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
+    private void pressableSetTransparent(long id, boolean isTransparent) {
+        queueUiTask(() -> {
+            OriPressable view = (OriPressable) views.get(id);
+            view.setTransparent(isTransparent);
+        });
+    }
+
     /* ---------- MEASURE ---------- */
 
     private void createMeasure(long id) {

@@ -9,13 +9,19 @@ public class OriPressable extends FrameLayout {
     long id;
 
     boolean isPressed = false;
+    boolean isTransparent = false;
 
     public OriPressable(Context context, long id) {
         super(context);
+
         setClipChildren(false);
         setClipToPadding(false);
 
         this.id = id;
+    }
+
+    public void setTransparent(boolean isTransparent) {
+        this.isTransparent = isTransparent;
     }
 
     @Override
@@ -35,17 +41,17 @@ public class OriPressable extends FrameLayout {
                 if (x < 0.0 || y < 0.0 || x > getWidth() || y > getHeight()) {
                     if (isPressed) {
                         isPressed = false;
-                        handled |= onPress(id, 2, x, y);
+                        onPress(id, 2, x, y);
                     }
                 }
 
-                handled |= onMove(id, x, y);
+                onMove(id, x, y);
                 break;
 
             case MotionEvent.ACTION_UP:
                 if (isPressed) {
                     isPressed = false;
-                    handled |= onPress(id, 1, x, y);
+                    onPress(id, 1, x, y);
                 }
 
                 break;
@@ -54,7 +60,7 @@ public class OriPressable extends FrameLayout {
                 break;
         }
 
-        return handled;
+        return handled && !isTransparent;
     }
 
     static native boolean onPress(long id, int state, float x, float y);
