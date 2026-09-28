@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.Choreographer;
 import android.view.WindowInsets;
@@ -53,9 +54,10 @@ import java.lang.Long;
 import java.io.ByteArrayInputStream;
 
 public class OriActivity extends AppCompatActivity {
+    public OriGroup root;
+
     private DisplayMetrics metrics;
     private WindowMetrics windowMetrics;
-    private OriGroup root;
     private boolean isAnimating = false;
     private long lastFrameTime = 0;
 
@@ -762,11 +764,20 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
+    private void textInputSetImeOptions(long id, int options) {
+        queueUiTask(() -> {
+            OriEditText view = (OriEditText) views.get(id);
+            view.setImeOptions(options);
+        });
+    }
+
     private void textInputSetFont(long id,
             float textSize,
             String family,
             int weight,
             int stretch,
+            int wrap,
+            int gravity,
             boolean italic,
             boolean strikethrough,
             float r,
@@ -783,6 +794,7 @@ public class OriActivity extends AppCompatActivity {
 
             view.setTypeface(typeface);
             view.setTextSize(textSize);
+            view.setGravity(gravity);
 
             int color = rgba(r, g, b, a);
             view.setTextColor(color);
@@ -801,6 +813,8 @@ public class OriActivity extends AppCompatActivity {
             String family,
             int weight,
             int stretch,
+            int wrap,
+            int gravity,
             boolean italic,
             boolean strikethrough,
             float r,
@@ -814,6 +828,8 @@ public class OriActivity extends AppCompatActivity {
 
         queueUiTask(() -> {
             OriEditText view = (OriEditText) views.get(id);
+
+            view.setGravity(gravity);
 
             int color = rgba(r, g, b, a);
             view.setPlaceholderFont(typeface, px(textSize), color);
