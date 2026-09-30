@@ -643,12 +643,21 @@ public class OriActivity extends AppCompatActivity {
         layout.text = new SpannableString(text);
     }
 
+    private void textSetSelectable(long id, boolean selectable) {
+        queueUiTask(() -> {
+            TextView view = (TextView) views.get(id);
+            view.setTextIsSelectable(selectable);
+        });
+    }
+
     private void textSetSpan(long id,
             int start, int end,
             float size,
             String family,
             int weight,
             int stretch,
+            int wrap,
+            int gravity,
             boolean italic,
             boolean strikethrough,
             float r,
@@ -684,6 +693,7 @@ public class OriActivity extends AppCompatActivity {
         queueUiTask(() -> {
             TextView view = (TextView) views.get(id);
             view.setText(layout.text);
+            view.setGravity(gravity);
         });
     }
 
