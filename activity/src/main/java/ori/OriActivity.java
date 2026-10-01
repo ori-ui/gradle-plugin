@@ -814,35 +814,20 @@ public class OriActivity extends AppCompatActivity {
     private void textInputSetPlaceholderText(long id, String text) {
         queueUiTask(() -> {
             OriEditText view = (OriEditText) views.get(id);
-            view.setPlaceholderText(text);
+            view.setHint(text);
         });
     }
 
-    private void textInputSetPlaceholderFont(long id,
-            float textSize,
-            String family,
-            int weight,
-            int stretch,
-            int wrap,
-            int gravity,
-            boolean italic,
-            boolean strikethrough,
+    private void textInputSetPlaceholderColor(long id,
             float r,
             float g,
             float b,
             float a) {
-        Typeface typeface = createTypeface(family, weight, italic);
-        TextInputLayout layout = textInputLayout.get(id);
-        layout.placeholderPaint.setTypeface(typeface);
-        layout.placeholderPaint.setTextSize(px(textSize));
-
         queueUiTask(() -> {
             OriEditText view = (OriEditText) views.get(id);
 
-            view.setGravity(gravity);
-
             int color = rgba(r, g, b, a);
-            view.setPlaceholderFont(typeface, px(textSize), color);
+            view.setHintTextColor(color);
         });
     }
 
@@ -850,17 +835,13 @@ public class OriActivity extends AppCompatActivity {
         TextInputLayout layout = textInputLayout.get(id);
 
         var fm = layout.paint.getFontMetrics();
-        var pfm = layout.placeholderPaint.getFontMetrics();
-
         float height = fm.descent - fm.ascent;
-        float placeholderHeight = pfm.descent - pfm.ascent;
 
-        return Math.max(height, placeholderHeight) / metrics.density + 4.0f;
+        return height / metrics.density + 4.0f;
     }
 
     private static class TextInputLayout {
         private TextPaint paint = new TextPaint();
-        private TextPaint placeholderPaint = new TextPaint();
     }
 
     /* ---------- IMAGE ---------- */

@@ -23,10 +23,6 @@ public class OriEditText extends AppCompatEditText {
     long id;
 
     OriActivity activity;
-    String placeholderText = "";
-    Typeface placeholderTypeface;
-    int placeholderTextSize;
-    int placeholderColor;
 
     boolean isSingline = false;
     boolean isSetting = false;
@@ -114,51 +110,6 @@ public class OriEditText extends AppCompatEditText {
         } else {
             setMaxLines(Integer.MAX_VALUE);
         }
-    }
-
-    public void setPlaceholderText(String text) {
-        placeholderText = text;
-
-        updatePlaceholder();
-    }
-
-    public void setPlaceholderFont(Typeface typeface, int textSize, int color) {
-        placeholderTypeface = typeface;
-        placeholderTextSize = textSize;
-        placeholderColor = color;
-
-        updatePlaceholder();
-    }
-
-    public Typeface getPlaceholderTypeface() {
-        return placeholderTypeface;
-    }
-
-    public int getPlaceholderTextSize() {
-        return placeholderTextSize;
-    }
-
-    void updatePlaceholder() {
-        SpannableString text = new SpannableString(placeholderText);
-        int start = 0;
-        int end = text.length();
-
-        text.setSpan(
-                new OriTypefaceSpan(placeholderTypeface),
-                start, end,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        text.setSpan(
-                new AbsoluteSizeSpan(placeholderTextSize),
-                start, end,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        text.setSpan(
-                new ForegroundColorSpan(placeholderColor),
-                start, end,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        setHint(text);
     }
 
     static native void onChange(long id, String text);
