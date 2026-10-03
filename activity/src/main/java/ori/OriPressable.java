@@ -10,7 +10,6 @@ public class OriPressable extends FrameLayout {
 
     OriActivity activity;
 
-    boolean isPressed = false;
     boolean isTransparent = false;
 
     public OriPressable(OriActivity context, long id) {
@@ -39,27 +38,19 @@ public class OriPressable extends FrameLayout {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                isPressed = true;
                 handled |= onPress(id, 0, logicalX, logicalY);
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                if (x < 0.0 || y < 0.0 || x > getWidth() || y > getHeight()) {
-                    if (isPressed) {
-                        isPressed = false;
-                        onPress(id, 2, logicalX, logicalY);
-                    }
-                }
-
                 onMove(id, logicalX, logicalY);
                 break;
 
-            case MotionEvent.ACTION_UP:
-                if (isPressed) {
-                    isPressed = false;
-                    onPress(id, 1, logicalX, logicalY);
-                }
+            case MotionEvent.ACTION_CANCEL:
+                onPress(id, 2, logicalX, logicalY);
+                break;
 
+            case MotionEvent.ACTION_UP:
+                onPress(id, 1, logicalX, logicalY);
                 break;
 
             default:
