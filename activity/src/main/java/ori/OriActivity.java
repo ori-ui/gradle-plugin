@@ -55,8 +55,8 @@ import java.io.ByteArrayInputStream;
 
 public class OriActivity extends AppCompatActivity {
     public OriGroup root;
+    public DisplayMetrics metrics;
 
-    private DisplayMetrics metrics;
     private WindowMetrics windowMetrics;
     private boolean isAnimating = false;
     private long lastFrameTime = 0;

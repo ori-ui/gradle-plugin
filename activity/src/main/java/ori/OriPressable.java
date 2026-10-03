@@ -8,16 +8,19 @@ import android.view.GestureDetector;
 public class OriPressable extends FrameLayout {
     long id;
 
+    OriActivity activity;
+
     boolean isPressed = false;
     boolean isTransparent = false;
 
-    public OriPressable(Context context, long id) {
+    public OriPressable(OriActivity context, long id) {
         super(context);
 
         setClipChildren(false);
         setClipToPadding(false);
 
         this.id = id;
+        this.activity = context;
     }
 
     public void setTransparent(boolean isTransparent) {
@@ -29,29 +32,32 @@ public class OriPressable extends FrameLayout {
         float x = event.getX();
         float y = event.getY();
 
+        float logicalX = x / (float) activity.metrics.density;
+        float logicalY = y / (float) activity.metrics.density;
+
         boolean handled = false;
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 isPressed = true;
-                handled |= onPress(id, 0, x, y);
+                handled |= onPress(id, 0, logicalX, logicalY);
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 if (x < 0.0 || y < 0.0 || x > getWidth() || y > getHeight()) {
                     if (isPressed) {
                         isPressed = false;
-                        onPress(id, 2, x, y);
+                        onPress(id, 2, logicalX, logicalY);
                     }
                 }
 
-                onMove(id, x, y);
+                onMove(id, logicalX, logicalY);
                 break;
 
             case MotionEvent.ACTION_UP:
                 if (isPressed) {
                     isPressed = false;
-                    onPress(id, 1, x, y);
+                    onPress(id, 1, logicalX, logicalY);
                 }
 
                 break;
