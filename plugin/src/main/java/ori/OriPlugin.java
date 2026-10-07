@@ -26,7 +26,7 @@ import java.util.Properties;
 public class OriPlugin implements Plugin<Project> {
     static Map<String, String> targets = Map.of(
             "arm64-v8a", "aarch64-linux-android",
-            "armabi-v7a", "arm7-linux-androideabi",
+            "armeabi-v7a", "armv7-linux-androideabi",
             "x86_64", "x86_64-linux-android",
             "x86", "i686-linux-android");
 
@@ -201,13 +201,11 @@ public class OriPlugin implements Plugin<Project> {
 
         return project.getTasks().register(taskName, Exec.class, task -> {
             task.setGroup("rust");
-
             task.setDescription("Build Rust (" + variant + ") for [" + abi + "].");
 
             File rustDir = new File(project.getRootDir(), "..");
 
             task.setWorkingDir(rustDir);
-
             task.commandLine(
                     "cargo",
                     "build",
@@ -225,8 +223,14 @@ public class OriPlugin implements Plugin<Project> {
                 host = "linux-x86_64";
             }
 
+            String llvmTriple = triple;
+
+            if (llvmTriple == "armv7-linux-androideabi") {
+                llvmTriple = "armv7a-linux-androideabi";
+            }
+
             String envTriple = triple.toUpperCase().replace("-", "_");
-            File clang = new File(triple + android.getDefaultConfig().getMinSdk() + "-clang");
+            File clang = new File(llvmTriple + android.getDefaultConfig().getMinSdk() + "-clang");
             File llvm = new File(sdkComponents.getNdkDirectory().get().toString(),
                     "toolchains/llvm/prebuilt/" + host + "/bin");
 
