@@ -155,7 +155,7 @@ public class OriActivity extends AppCompatActivity {
     }
 
     private float lc(int px) {
-        return px / (float) metrics.density;
+        return (float) px / metrics.density;
     }
 
     /* ---------- VIEW ---------- */
@@ -242,12 +242,16 @@ public class OriActivity extends AppCompatActivity {
         });
     }
 
-    private int windowGetWidth() {
-        return (int) Math.round(lc(windowMetrics.getBounds().width()));
+    private float windowGetWidth() {
+        return lc(windowMetrics.getBounds().width());
     }
 
-    private int windowGetHeight() {
-        return (int) Math.round(lc(windowMetrics.getBounds().height()));
+    private float windowGetHeight() {
+        return lc(windowMetrics.getBounds().height());
+    }
+
+    private float windowGetScale() {
+        return metrics.density;
     }
 
     private void windowStartAnimating() {
