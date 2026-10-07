@@ -151,7 +151,7 @@ public class OriActivity extends AppCompatActivity {
     /* ---------- UNITS ---------- */
 
     private int px(float logical) {
-        return (int) Math.floor(logical * metrics.density);
+        return (int) Math.round(logical * metrics.density);
     }
 
     private float lc(int px) {
