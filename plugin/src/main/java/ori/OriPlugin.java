@@ -148,6 +148,9 @@ public class OriPlugin implements Plugin<Project> {
             if (!meta.targets.contains(abi))
                 return;
 
+            if (meta.targetArch != null && !meta.targetArch.equals(abi))
+                return;
+
             buildTasks.add(registerBuildTask(project, meta, variant, profile, abi, triple));
         });
 
@@ -160,7 +163,7 @@ public class OriPlugin implements Plugin<Project> {
         });
 
         String copyTaskName = "copyJniLibs" + variant;
-        return project.getTasks().register(copyTaskName, Copy.class, task -> {
+        TaskProvider<Copy> buildTask = project.getTasks().register(copyTaskName, Copy.class, task -> {
             task.setGroup("rust");
             task.setDescription("Copy compiled Rust (" + variant + ") objects.");
 
@@ -180,6 +183,8 @@ public class OriPlugin implements Plugin<Project> {
 
             task.dependsOn(buildTasks);
         });
+
+        return buildTask;
     }
 
     private TaskProvider<Exec> registerBuildTask(
@@ -257,6 +262,7 @@ public class OriPlugin implements Plugin<Project> {
 class CargoMetadata {
     String targetDirectory;
 
+    String targetArch;
     Set<String> targets = new HashSet<>();
 
     String label;
@@ -273,6 +279,7 @@ class CargoMetadata {
         JsonNode cargoMeta = mapper.readTree(metaString);
 
         targetDirectory = cargoMeta.get("target_directory").asText();
+        targetArch = System.getenv("ORI_TARGET_ARCH");
 
         JsonNode pkg = null;
         for (var p : cargoMeta.get("packages")) {
